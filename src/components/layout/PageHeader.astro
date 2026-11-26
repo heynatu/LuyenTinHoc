@@ -1,5 +1,9 @@
 ---
-/** Phần đầu trang nội dung: breadcrumb, tiêu đề, đoạn dẫn, vùng phụ (tag, nhãn). */
+/**
+ * Phần đầu trang nội dung: khối nền màu (surface-band) có breadcrumb, tiêu đề, đoạn dẫn,
+ * vùng phụ (tag, nhãn) và linh vật Bít ở màn hình rộng.
+ */
+import Mascot from '../brand/Mascot.astro';
 import Breadcrumb from '../ui/Breadcrumb.astro';
 
 interface Props {
@@ -10,9 +14,12 @@ interface Props {
 const { title, lead, crumbs } = Astro.props;
 ---
 
-<header class="flex max-w-hero flex-col gap-200">
-  <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, ...crumbs, { label: title }]} />
-  <h1 class="heading-4 md:heading-3 text-text-primary">{title}</h1>
-  {lead && <p class="body-3 text-text-secondary">{lead}</p>}
-  <slot />
+<header class="raised edge-neutral flex items-center gap-400 rounded-24 border border-border-primary bg-surface-band p-300 md:p-600">
+  <div class="flex min-w-0 max-w-hero flex-1 flex-col gap-200">
+    <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, ...crumbs, { label: title }]} />
+    <h1 class="heading-4 md:heading-2 text-text-primary">{title}</h1>
+    {lead && <p class="body-3 md:title-2 text-text-secondary">{lead}</p>}
+    <slot />
+  </div>
+  <Mascot size={128} class="ml-auto hidden lg:block" />
 </header>

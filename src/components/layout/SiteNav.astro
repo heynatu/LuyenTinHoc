@@ -8,6 +8,7 @@ import { cleanPath } from '../../lib/ui-logic';
 import BrandMark from './BrandMark.astro';
 import LevelSwitcher from './LevelSwitcher.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import Button from '../ui/Button.astro';
 import SearchDialog from './SearchDialog.astro';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr';
 
@@ -69,6 +70,12 @@ const delay = (index: number) => `--delay: ${Math.min(index * 60, 400)}ms`;
     <div class="hidden items-center gap-50 lg:flex">
       <LevelSwitcher id="level-desktop" />
       <ThemeToggle />
+    </div>
+
+    <div class="hidden pl-50 xl:flex">
+      <Button href="/hoc" size="sm">
+        Bắt đầu học
+      </Button>
     </div>
 
     <button

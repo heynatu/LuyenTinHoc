@@ -1,23 +1,23 @@
 {
   "core": {
     "primary": {
-      "50": "#E9EFFE",
-      "100": "#D4E0FE",
-      "150": "#BFD1FD",
-      "200": "#AAC1FE",
-      "300": "#87A6FA",
-      "350": "#7497FD",
-      "400": "#6286F9",
-      "450": "#4E71EC",
-      "500": "#3B5BDB",
-      "600": "#2F4AC3",
-      "700": "#243BA4",
-      "800": "#1C2E83",
-      "850": "#17286E",
-      "900": "#13215A",
-      "950": "#0D1944",
-      "1000": "#0A1332",
-      "00": "#F8FAFF"
+      "50": "#ECEFFE",
+      "100": "#DBE1FD",
+      "150": "#C9D2FF",
+      "200": "#B9C3FC",
+      "300": "#9CA9FD",
+      "350": "#8E9BFB",
+      "400": "#7E8AFD",
+      "450": "#6B72FF",
+      "500": "#5B5CF0",
+      "600": "#4C49D5",
+      "700": "#3D39B3",
+      "800": "#2F2C8E",
+      "850": "#272677",
+      "900": "#1F1F61",
+      "950": "#161749",
+      "1000": "#0F1135",
+      "00": "#F9FAFF"
     },
     "secondary": {
       "50": "#E9F5F2",
@@ -37,21 +37,21 @@
       "00": "#F6FCFA"
     },
     "accent": {
-      "50": "#FBF3EA",
-      "100": "#FBEAD6",
-      "150": "#F9E1C6",
-      "200": "#F8D7B2",
-      "300": "#F5C792",
-      "400": "#F0B56E",
-      "500": "#E09F4A",
-      "600": "#C08330",
-      "700": "#9C671C",
-      "800": "#784E11",
-      "850": "#62400E",
-      "900": "#4E320B",
-      "950": "#382205",
-      "1000": "#251603",
-      "00": "#FDF9F5"
+      "50": "#FDF2E9",
+      "100": "#FEE7D5",
+      "150": "#FDDDC3",
+      "200": "#FDD2AE",
+      "300": "#FCBF8C",
+      "400": "#F8AA66",
+      "500": "#E8913F",
+      "600": "#C77624",
+      "700": "#A35D10",
+      "800": "#7D4607",
+      "850": "#683907",
+      "900": "#522D06",
+      "950": "#3B1F03",
+      "1000": "#281402",
+      "00": "#FFF9F4"
     },
     "red": {
       "50": "#FFECEA",
@@ -179,16 +179,16 @@
       "group": "border",
       "dark": "primary-400",
       "light": "primary-500",
-      "darkHex": "#6286F9",
-      "lightHex": "#3B5BDB"
+      "darkHex": "#7E8AFD",
+      "lightHex": "#5B5CF0"
     },
     {
       "name": "border-action-disabled",
       "group": "border",
       "dark": "primary-600",
       "light": "primary-200",
-      "darkHex": "#2F4AC3",
-      "lightHex": "#AAC1FE"
+      "darkHex": "#4C49D5",
+      "lightHex": "#B9C3FC"
     },
     {
       "name": "border-action-secondary",
@@ -323,32 +323,32 @@
       "group": "surface",
       "dark": "accent-500",
       "light": "accent-500",
-      "darkHex": "#E09F4A",
-      "lightHex": "#E09F4A"
+      "darkHex": "#E8913F",
+      "lightHex": "#E8913F"
     },
     {
       "name": "surface-accent-subtle",
       "group": "surface",
       "dark": "accent-200",
       "light": "accent-100",
-      "darkHex": "#F8D7B2",
-      "lightHex": "#FBEAD6"
+      "darkHex": "#FDD2AE",
+      "lightHex": "#FEE7D5"
     },
     {
       "name": "surface-info",
       "group": "surface",
       "dark": "primary-400",
       "light": "primary-500",
-      "darkHex": "#6286F9",
-      "lightHex": "#3B5BDB"
+      "darkHex": "#7E8AFD",
+      "lightHex": "#5B5CF0"
     },
     {
       "name": "surface-info-subtle",
       "group": "surface",
       "dark": "primary-150",
       "light": "primary-50",
-      "darkHex": "#BFD1FD",
-      "lightHex": "#E9EFFE"
+      "darkHex": "#C9D2FF",
+      "lightHex": "#ECEFFE"
     },
     {
       "name": "surface-error",
@@ -439,36 +439,44 @@
       "lightHex": "#EAF5EC"
     },
     {
+      "name": "surface-band",
+      "group": "surface",
+      "dark": "grayscale-850",
+      "light": "primary-50",
+      "darkHex": "#1F1F1F",
+      "lightHex": "#ECEFFE"
+    },
+    {
       "name": "action-primary",
       "group": "action",
       "dark": "primary-500",
       "light": "primary-500",
-      "darkHex": "#3B5BDB",
-      "lightHex": "#3B5BDB"
+      "darkHex": "#5B5CF0",
+      "lightHex": "#5B5CF0"
     },
     {
       "name": "action-primary-hover",
       "group": "action",
       "dark": "primary-700",
       "light": "primary-600",
-      "darkHex": "#243BA4",
-      "lightHex": "#2F4AC3"
+      "darkHex": "#3D39B3",
+      "lightHex": "#4C49D5"
     },
     {
       "name": "action-primary-click",
       "group": "action",
       "dark": "primary-600",
       "light": "primary-700",
-      "darkHex": "#2F4AC3",
-      "lightHex": "#243BA4"
+      "darkHex": "#4C49D5",
+      "lightHex": "#3D39B3"
     },
     {
       "name": "action-primary-disabled",
       "group": "action",
       "dark": "primary-700",
       "light": "primary-200",
-      "darkHex": "#243BA4",
-      "lightHex": "#AAC1FE"
+      "darkHex": "#3D39B3",
+      "lightHex": "#B9C3FC"
     },
     {
       "name": "action-secondary",
@@ -675,24 +683,24 @@
       "group": "text",
       "dark": "primary-350",
       "light": "primary-600",
-      "darkHex": "#7497FD",
-      "lightHex": "#2F4AC3"
+      "darkHex": "#8E9BFB",
+      "lightHex": "#4C49D5"
     },
     {
       "name": "text-info-inverted",
       "group": "text",
       "dark": "primary-700",
       "light": "primary-700",
-      "darkHex": "#243BA4",
-      "lightHex": "#243BA4"
+      "darkHex": "#3D39B3",
+      "lightHex": "#3D39B3"
     },
     {
       "name": "text-info-inverted-disabled",
       "group": "text",
       "dark": "primary-200",
       "light": "primary-300",
-      "darkHex": "#AAC1FE",
-      "lightHex": "#87A6FA"
+      "darkHex": "#B9C3FC",
+      "lightHex": "#9CA9FD"
     },
     {
       "name": "text-warning",
@@ -827,16 +835,16 @@
       "group": "icon",
       "dark": "primary-350",
       "light": "primary-600",
-      "darkHex": "#7497FD",
-      "lightHex": "#2F4AC3"
+      "darkHex": "#8E9BFB",
+      "lightHex": "#4C49D5"
     },
     {
       "name": "icon-info-disabled",
       "group": "icon",
       "dark": "primary-200",
       "light": "primary-300",
-      "darkHex": "#AAC1FE",
-      "lightHex": "#87A6FA"
+      "darkHex": "#B9C3FC",
+      "lightHex": "#9CA9FD"
     },
     {
       "name": "icon-warning",
@@ -891,8 +899,8 @@
       "group": "icon",
       "dark": "primary-700",
       "light": "primary-700",
-      "darkHex": "#243BA4",
-      "lightHex": "#243BA4"
+      "darkHex": "#3D39B3",
+      "lightHex": "#3D39B3"
     },
     {
       "name": "overlay-xs",
@@ -940,6 +948,7 @@
     "text/on-warning": "Chữ tối trên nền sáng có màu (action warning, surface accent, surface warning, surface accent-subtle) ở cả hai mode.",
     "text/hero-start": "Điểm đầu gradient chữ tiêu đề hero.",
     "text/hero-end": "Điểm cuối gradient chữ tiêu đề hero.",
-    "icon/info-inverted": "Icon trên nền surface-info-subtle (nền xanh nhạt ở cả hai mode), cùng kiểu với icon/warning-inverted có sẵn."
+    "icon/info-inverted": "Icon trên nền surface-info-subtle (nền xanh nhạt ở cả hai mode), cùng kiểu với icon/warning-inverted có sẵn.",
+    "surface/band": "Nền khối xen kẽ trên trang chủ (kiểu dải màu của các web học lập trình): chàm rất nhạt ở mode sáng, xám #1F1F1F ở mode tối. Chữ text-* thường đọc được trên cả hai."
   }
 }

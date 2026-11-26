@@ -2,7 +2,7 @@
   "$comment": "Lớp 1, Core Colors. Đổi màu thương hiệu ở đây rồi chạy: npm run tokens. Shade 500 là màu gốc, các shade khác sinh theo thang OKLCH.",
   "palettes": {
     "primary": {
-      "base": "#3B5BDB",
+      "base": "#5B5CF0",
       "shades": [
         "00",
         "50",
@@ -44,7 +44,7 @@
       ]
     },
     "accent": {
-      "base": "#E09F4A",
+      "base": "#E8913F",
       "shades": [
         "00",
         "50",
@@ -125,7 +125,6 @@
     }
   },
   "grayscale": {
-    "00": "#FFFFFF",
     "50": "#F7F7F7",
     "100": "#EFEFEF",
     "150": "#E6E6E6",
@@ -143,7 +142,8 @@
     "870": "#181818",
     "900": "#141414",
     "950": "#0B0B0B",
-    "1000": "#000000"
+    "1000": "#000000",
+    "00": "#FFFFFF"
   },
   "grayscaleAlpha": {
     "shade": "700",

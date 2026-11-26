@@ -12,6 +12,8 @@ import {
   QuestionIcon,
 } from '@phosphor-icons/react/ssr';
 import ShowcaseSection from '../components/design-system/ShowcaseSection.astro';
+import Mascot from '../components/brand/Mascot.astro';
+import StreakCard from '../components/brand/StreakCard.astro';
 import StateGrid from '../components/design-system/StateGrid.astro';
 import Accordion from '../components/ui/Accordion.astro';
 import Badge from '../components/ui/Badge.astro';
@@ -826,6 +828,26 @@ HẾT VỚI
         <p class="body-6 text-text-tertiary">
           Ô tìm kiếm và trang Tiến độ dùng lại các trạng thái này từ Giai đoạn 6.
         </p>
+      </div>
+    </ShowcaseSection>
+
+    <ShowcaseSection
+      id="brand"
+      title="Linh vật, thẻ nổi, chuỗi ngày học"
+      description="Linh vật Bít vẽ bằng SVG theo token. Nút Primary, Secondary và thẻ có cạnh nổi bên dưới, nhấn thì lún xuống. Lịch chuỗi ngày đọc tiến độ thật trong trình duyệt."
+    >
+      <div class="grid grid-cols-1 items-start gap-300 lg:grid-cols-3">
+        <div class="flex flex-wrap items-end gap-300">
+          <Mascot size={96} />
+          <Mascot size={64} wave />
+        </div>
+        <div class="raised edge-neutral flex flex-col gap-100 rounded-24 border border-border-primary bg-surface-primary p-300">
+          <p class="title-2 text-text-primary">Thẻ nổi</p>
+          <p class="body-6 text-text-secondary">
+            Lớp raised kèm edge-neutral, edge-primary, edge-success, edge-info hoặc edge-warning.
+          </p>
+        </div>
+        <StreakCard />
       </div>
     </ShowcaseSection>
   </div>

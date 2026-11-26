@@ -1,0 +1,87 @@
+---
+/**
+ * Linh vật Bít: robot nhỏ tự vẽ của LuyenTinHoc (SVG, màu lấy từ token nên đổi theo Light, Dark).
+ * Trang trí thuần túy nên aria-hidden. wave: tay trái vẫy nhẹ (tắt khi giảm chuyển động).
+ */
+interface Props {
+  size?: number;
+  wave?: boolean;
+  class?: string;
+}
+
+const { size = 160, wave = false, class: className } = Astro.props;
+---
+
+<svg
+  viewBox="0 0 160 160"
+  width={size}
+  height={size}
+  aria-hidden="true"
+  focusable="false"
+  class:list={['shrink-0', className]}
+>
+  <ellipse cx="80" cy="152" rx="42" ry="5" class="fill-surface-secondary"></ellipse>
+
+  <!-- Ăng ten -->
+  <line
+    x1="80"
+    y1="31"
+    x2="80"
+    y2="16"
+    stroke-width="4"
+    stroke-linecap="round"
+    class="stroke-action-primary-click"
+  ></line>
+  <circle cx="80" cy="13" r="7" class="fill-surface-accent"></circle>
+
+  <!-- Tai -->
+  <rect x="24" y="56" width="12" height="24" rx="6" class="fill-action-primary-click"></rect>
+  <rect x="124" y="56" width="12" height="24" rx="6" class="fill-action-primary-click"></rect>
+
+  <!-- Đầu và màn hình mặt -->
+  <rect x="32" y="30" width="96" height="74" rx="26" class="fill-action-primary"></rect>
+  <rect x="44" y="42" width="72" height="50" rx="18" class="fill-surface-primary"></rect>
+  <ellipse cx="66" cy="63" rx="7" ry="9" class="fill-text-info"></ellipse>
+  <ellipse cx="94" cy="63" rx="7" ry="9" class="fill-text-info"></ellipse>
+  <circle cx="68.5" cy="59.5" r="2.5" class="fill-surface-primary"></circle>
+  <circle cx="96.5" cy="59.5" r="2.5" class="fill-surface-primary"></circle>
+  <circle cx="54" cy="75" r="4" class="fill-surface-accent-subtle"></circle>
+  <circle cx="106" cy="75" r="4" class="fill-surface-accent-subtle"></circle>
+  <path
+    d="M71 77 Q80 85 89 77"
+    fill="none"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    class="stroke-text-info"
+  ></path>
+
+  <!-- Thân -->
+  <rect x="50" y="106" width="60" height="38" rx="16" class="fill-action-primary"></rect>
+  <rect x="64" y="115" width="32" height="18" rx="7" class="fill-surface-primary"></rect>
+  <path
+    d="M75 119 l-5 5 5 5 M85 119 l5 5 -5 5"
+    fill="none"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="stroke-text-info"
+  ></path>
+
+  <!-- Tay -->
+  <g class:list={[wave && 'mascot-wave']}>
+    <path
+      d="M52 116 L32 96"
+      stroke-width="10"
+      stroke-linecap="round"
+      class="stroke-action-primary-click"
+    ></path>
+    <circle cx="29" cy="92" r="8" class="fill-surface-accent"></circle>
+  </g>
+  <path
+    d="M108 118 L124 134"
+    stroke-width="10"
+    stroke-linecap="round"
+    class="stroke-action-primary-click"
+  ></path>
+  <circle cx="127" cy="137" r="8" class="fill-surface-accent"></circle>
+</svg>

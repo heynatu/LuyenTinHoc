@@ -107,6 +107,10 @@
 
 - Tên hiển thị, repo và project Vercel: LuyenTinHoc (trước đây Tư Duy Tin). Ảnh chia sẻ `public/og-default.png` đã vẽ lại với tên mới. Khóa localStorage giữ tiền tố `tdt:v1:` để không mất tiến độ.
 
+## Thiết kế lại giao diện (tham khảo Coddy, Mimo)
+
+- Xem `docs/REDESIGN_PLAN.md`. Màu chính `#5B5CF0`, accent `#E8913F`, token mới `surface/band`. 256 cặp tương phản đạt. Component mới trong `src/components/brand/`.
+
 ## Chưa kiểm chứng
 
 - Header bảo mật trên Vercel thật (chỉ kiểm chứng được sau khi deploy: `curl -I`). Đã kiểm bằng `scripts/serve-dist.mjs` dùng đúng `vercel.json`.

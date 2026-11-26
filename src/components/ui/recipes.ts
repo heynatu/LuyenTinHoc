@@ -39,7 +39,7 @@ export const BUTTON_VARIANT_LABELS: Record<ButtonVariant, string> = {
 };
 
 const BUTTON_BASE =
-  'inline-flex min-h-touch items-center justify-center gap-75 rounded-8 px-100 py-75 transition duration-300 ease-base select-none';
+  'inline-flex min-h-touch items-center justify-center gap-75 rounded-12 px-100 py-75 transition duration-300 ease-base select-none';
 
 const BUTTON_SIZE: Record<ButtonSize, string> = {
   lg: 'button-lg',
@@ -51,18 +51,20 @@ const BUTTON_SIZE: Record<ButtonSize, string> = {
 const BUTTON: Record<ButtonVariant, Record<Exclude<VisualState, 'focus'>, string>> = {
   primary: {
     interactive:
-      'bg-action-primary text-text-on-action hover:bg-action-primary-hover active:scale-98 active:bg-action-primary-click disabled:cursor-not-allowed disabled:bg-action-primary-disabled disabled:text-text-primary-disabled',
-    default: 'bg-action-primary text-text-on-action',
-    hover: 'bg-action-primary-hover text-text-on-action',
-    pressed: 'scale-98 bg-action-primary-click text-text-on-action',
+      'raised edge-primary bg-action-primary text-text-on-action hover:bg-action-primary-hover active:bg-action-primary-click disabled:cursor-not-allowed disabled:bg-action-primary-disabled disabled:text-text-primary-disabled',
+    default: 'raised edge-primary bg-action-primary text-text-on-action',
+    hover: 'raised edge-primary bg-action-primary-hover text-text-on-action',
+    pressed: 'raised-pressed edge-primary bg-action-primary-click text-text-on-action',
     // Chữ mờ: ở mode tối nền vô hiệu trùng nền hover (cùng primary 700) nên phải khác ở chữ.
     disabled: 'cursor-not-allowed bg-action-primary-disabled text-text-primary-disabled',
   },
   secondary: {
     interactive:
-      'border border-border-action-secondary bg-action-secondary text-text-primary hover:bg-action-secondary-hover active:scale-98 active:bg-action-secondary-click disabled:cursor-not-allowed disabled:border-border-primary-disabled disabled:text-text-primary-disabled',
-    default: 'border border-border-action-secondary bg-action-secondary text-text-primary',
-    hover: 'border border-border-action-secondary bg-action-secondary-hover text-text-primary',
+      'raised edge-neutral border border-border-action-secondary bg-action-secondary text-text-primary hover:bg-action-secondary-hover active:bg-action-secondary-click disabled:cursor-not-allowed disabled:border-border-primary-disabled disabled:text-text-primary-disabled',
+    default:
+      'raised edge-neutral border border-border-action-secondary bg-action-secondary text-text-primary',
+    hover:
+      'raised edge-neutral border border-border-action-secondary bg-action-secondary-hover text-text-primary',
     pressed:
       'scale-98 border border-border-action-secondary bg-action-secondary-click text-text-primary',
     disabled:
@@ -234,7 +236,7 @@ export type CardState = 'interactive' | 'default' | 'hover' | 'focus' | 'selecte
 const CARD_BASE = 'flex flex-col gap-200 rounded-16 border p-300';
 const CARD: Record<CardState, string> = {
   interactive:
-    'border-border-primary bg-surface-primary-subtle transition duration-300 ease-base hover:bg-surface-secondary active:translate-y-px',
+    'raised edge-neutral border-border-primary bg-surface-primary transition duration-300 ease-base hover:border-border-action-primary hover:bg-surface-primary-hover',
   default: 'border-border-primary bg-surface-primary-subtle',
   hover: 'border-border-primary bg-surface-secondary',
   focus: 'focus-ring border-border-primary bg-surface-primary-subtle',

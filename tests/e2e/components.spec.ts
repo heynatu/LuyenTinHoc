@@ -149,3 +149,34 @@ test('Vòng tiến độ có giá trị cho trình đọc màn hình', async ({ 
   const ring = page.getByRole('progressbar', { name: 'Chủ đề Mảng: 35% số bài' });
   await expect(ring).toHaveAttribute('aria-valuenow', '35');
 });
+
+test('lịch chuỗi ngày học đánh dấu ngày đã học từ tiến độ thật', async ({ page }) => {
+  await page.goto('/thiet-ke');
+  const card = page.locator('[data-streak-card]').first();
+  await expect(card.locator('[data-streak-title]')).toHaveText('Chưa có chuỗi ngày học');
+  await page.evaluate(() => {
+    const day = (back: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() - back);
+      return d.toISOString().slice(0, 10);
+    };
+    localStorage.setItem(
+      'tdt:v1:progress',
+      JSON.stringify({
+        v: 1,
+        lessons: {},
+        quizzes: {},
+        problems: {},
+        exams: [],
+        puzzles: {},
+        sql: {},
+        days: [day(0), day(1)],
+      }),
+    );
+  });
+  await page.reload();
+  await expect(card.locator('[data-streak-title]')).toHaveText('Chuỗi 2 ngày liên tiếp');
+  await expect(card.locator('[data-streak-day="0"] [data-streak-check]')).toBeVisible();
+  await expect(card.locator('[data-streak-day="0"] [data-streak-label]')).toContainText('đã học');
+  await expect(card.locator('[data-streak-day="5"] [data-streak-check]')).toBeHidden();
+});

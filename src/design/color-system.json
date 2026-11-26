@@ -5,7 +5,8 @@
     "text/on-warning": "Chữ tối trên nền sáng có màu (action warning, surface accent, surface warning, surface accent-subtle) ở cả hai mode.",
     "text/hero-start": "Điểm đầu gradient chữ tiêu đề hero.",
     "text/hero-end": "Điểm cuối gradient chữ tiêu đề hero.",
-    "icon/info-inverted": "Icon trên nền surface-info-subtle (nền xanh nhạt ở cả hai mode), cùng kiểu với icon/warning-inverted có sẵn."
+    "icon/info-inverted": "Icon trên nền surface-info-subtle (nền xanh nhạt ở cả hai mode), cùng kiểu với icon/warning-inverted có sẵn.",
+    "surface/band": "Nền khối xen kẽ trên trang chủ (kiểu dải màu của các web học lập trình): chàm rất nhạt ở mode sáng, xám #1F1F1F ở mode tối. Chữ text-* thường đọc được trên cả hai."
   },
   "tokens": {
     "border": {
@@ -48,7 +49,8 @@
       "warning-subtle": ["yellow-100", "yellow-50"],
       "warning-hover": ["yellow-700", "yellow-600"],
       "success": ["green-500", "green-500"],
-      "success-subtle": ["green-100", "green-50"]
+      "success-subtle": ["green-100", "green-50"],
+      "band": ["grayscale-850", "primary-50"]
     },
     "action": {
       "primary": ["primary-500", "primary-500"],

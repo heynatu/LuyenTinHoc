@@ -1,0 +1,75 @@
+---
+/**
+ * Lịch chuỗi ngày học 28 ngày gần nhất, đọc từ tiến độ thật trong trình duyệt (localStorage).
+ * Chưa có dữ liệu thì hiện trạng thái trống và lời mời bắt đầu, không bịa số liệu minh họa.
+ * Ngày đã học có dấu tích, không chỉ khác màu.
+ */
+import { CheckIcon, FireIcon } from '@phosphor-icons/react/ssr';
+---
+
+<div
+  class="raised edge-neutral flex w-full flex-col gap-300 rounded-24 border border-border-primary bg-surface-primary p-300 md:p-400"
+  data-streak-card
+>
+  <div class="flex items-start justify-between gap-200">
+    <div class="flex flex-col gap-50">
+      <p class="heading-5 text-text-primary" data-streak-title>
+        Chưa có chuỗi ngày học
+      </p>
+      <p class="body-6 text-text-secondary" data-streak-note>
+        Học xong một bài hoặc nộp một bài luyện, ngày hôm đó sẽ được đánh dấu.
+      </p>
+    </div>
+    <span class="inline-flex size-600 shrink-0 items-center justify-center rounded-16 bg-surface-accent-subtle text-text-on-warning">
+      <FireIcon size={28} weight="fill" aria-hidden="true" />
+    </span>
+  </div>
+  <ol class="grid grid-cols-7 gap-75" aria-label="28 ngày gần nhất" data-streak-grid>
+    {Array.from({ length: 28 }, (_, i) => (
+      <li
+        class="flex aspect-square items-center justify-center rounded-full bg-surface-secondary text-text-on-warning"
+        data-streak-day={27 - i}
+      >
+        <span hidden data-streak-check>
+          <CheckIcon size={14} weight="bold" aria-hidden="true" />
+        </span>
+        <span class="sr-only" data-streak-label />
+      </li>
+    ))}
+  </ol>
+  <p class="caption-2 text-text-tertiary">
+    Dữ liệu chỉ nằm trong trình duyệt trên máy bạn, không gửi đi đâu.
+  </p>
+</div>
+
+<script>
+  import { loadProgress, streak } from '../../lib/progress';
+
+  function paint() {
+    const card = document.querySelector<HTMLElement>('[data-streak-card]');
+    if (!card) return;
+    const p = loadProgress();
+    const days = new Set(p.days);
+    const count = streak(p.days);
+    card.querySelectorAll<HTMLElement>('[data-streak-day]').forEach((cell) => {
+      const back = Number(cell.dataset.streakDay);
+      const d = new Date();
+      d.setDate(d.getDate() - back);
+      const key = d.toISOString().slice(0, 10);
+      const done = days.has(key);
+      cell.classList.toggle('bg-surface-accent', done);
+      cell.classList.toggle('bg-surface-secondary', !done);
+      cell.querySelector<HTMLElement>('[data-streak-check]')!.hidden = !done;
+      cell.querySelector('[data-streak-label]')!.textContent =
+        `${d.getDate()}/${d.getMonth() + 1}: ${done ? 'đã học' : 'chưa học'}`;
+    });
+    if (days.size > 0) {
+      card.querySelector('[data-streak-title]')!.textContent =
+        count > 0 ? `Chuỗi ${count} ngày liên tiếp` : 'Hôm nay học tiếp nhé';
+      card.querySelector('[data-streak-note]')!.textContent =
+        `Bạn đã học ${days.size} ngày. Học hôm nay để giữ chuỗi.`;
+    }
+  }
+  paint();
+  document.addEventListener('tdt:progress', paint);
+</script>

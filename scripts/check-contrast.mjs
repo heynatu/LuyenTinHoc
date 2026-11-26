@@ -16,6 +16,7 @@ const READING_SURFACES = [
   'surface-primary-subtle',
   'surface-primary-hover',
   'surface-secondary',
+  'surface-band',
 ];
 
 /** @type {[string, string, number, string][]} [chữ, nền, ngưỡng, ghi chú] */

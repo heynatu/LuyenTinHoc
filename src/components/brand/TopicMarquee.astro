@@ -1,0 +1,44 @@
+---
+/**
+ * Dải chủ đề chạy ngang (kiểu dải môn học của các web học lập trình): mỗi chip là một thuật toán
+ * có mô phỏng thật. Bản sao thứ hai chỉ để nối vòng nên inert và aria-hidden.
+ * Giảm chuyển động: dải đứng yên, cuộn ngang bằng tay.
+ */
+import { ALGORITHMS } from '../../lib/viz/registry';
+
+const half = Math.ceil(ALGORITHMS.length / 2);
+const rows = [ALGORITHMS.slice(0, half), ALGORITHMS.slice(half)];
+const DOT: Record<string, string> = {
+  'co-ban': 'bg-surface-success',
+  'van-dung': 'bg-action-primary',
+  'chuyen-sau': 'bg-surface-accent',
+};
+---
+
+<div class="flex flex-col gap-100" aria-label="Thuật toán có mô phỏng" role="region">
+  {rows.map((row, r) => (
+    <div class:list={['marquee overflow-hidden', r === 1 && 'marquee-reverse']}>
+      <div class="marquee-track flex w-max gap-100 py-50">
+        {[0, 1].map((copy) => (
+          <ul
+            class:list={['flex shrink-0 gap-100', copy === 1 && 'marquee-copy']}
+            aria-hidden={copy === 1 ? 'true' : undefined}
+            inert={copy === 1}
+          >
+            {row.map((a) => (
+              <li>
+                <a
+                  href={`/mo-phong/${a.slug}`}
+                  class="raised edge-neutral title-4 flex min-h-touch items-center gap-75 rounded-full border border-border-primary bg-surface-primary px-200 text-text-primary transition duration-300 ease-base hover:border-border-action-primary"
+                >
+                  <span class:list={['size-100 shrink-0 rounded-full', DOT[a.category]]} />
+                  {a.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </div>
+  ))}
+</div>

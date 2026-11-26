@@ -1,0 +1,91 @@
+---
+/**
+ * Lộ trình năm chặng: nút đánh số nối bằng đường nét đứt (ngang trên máy tính, dọc trên điện thoại).
+ * Mỗi chặng dẫn tới trang thật; màu nút kèm số thứ tự nên không chỉ dựa vào màu.
+ */
+interface Stage {
+  title: string;
+  text: string;
+  href: string;
+  cta: string;
+  tone: 'success' | 'primary' | 'accent' | 'error' | 'inverted';
+}
+
+interface Props {
+  stages: readonly Stage[];
+}
+
+const { stages } = Astro.props;
+const NODE: Record<Stage['tone'], string> = {
+  success: 'bg-surface-success text-text-on-warning edge-success',
+  primary: 'bg-action-primary text-text-on-action edge-primary',
+  accent: 'bg-surface-accent text-text-on-warning edge-warning',
+  error: 'bg-surface-error-darker text-text-on-action edge-neutral',
+  inverted: 'bg-surface-inverted text-text-inverted edge-neutral',
+};
+---
+
+<ol class="relative grid grid-cols-1 gap-300 lg:grid-cols-5 lg:gap-200">
+  <svg
+    class="pointer-events-none absolute top-300 right-0 left-0 hidden h-px w-full lg:block"
+    preserveAspectRatio="none"
+    viewBox="0 0 100 1"
+    aria-hidden="true"
+  >
+    <line
+      x1="10"
+      y1="0.5"
+      x2="90"
+      y2="0.5"
+      stroke-width="2"
+      stroke-dasharray="6 6"
+      vector-effect="non-scaling-stroke"
+      class="stroke-border-tertiary"
+    ></line>
+  </svg>
+  {stages.map((s, i) => (
+    <li class="relative flex gap-200 lg:flex-col lg:items-center lg:text-center">
+      {i < stages.length - 1 && (
+        <svg
+          class="pointer-events-none absolute top-600 left-300 h-full w-px lg:hidden"
+          preserveAspectRatio="none"
+          viewBox="0 0 1 100"
+          aria-hidden="true"
+        >
+          <line
+            x1="0.5"
+            y1="0"
+            x2="0.5"
+            y2="100"
+            stroke-width="2"
+            stroke-dasharray="6 6"
+            vector-effect="non-scaling-stroke"
+            class="stroke-border-tertiary"
+          />
+        </svg>
+      )}
+      <span
+        class:list={[
+          'raised heading-6 relative z-10 inline-flex size-600 shrink-0 items-center justify-center rounded-full',
+          NODE[s.tone],
+        ]}
+        aria-hidden="true"
+      >
+        {i + 1}
+      </span>
+      <div class="flex min-w-0 flex-col gap-75 pb-200 lg:items-center lg:pb-0">
+        <h3 class="title-2 text-text-primary">
+          <span class="sr-only">Chặng {i + 1}: </span>
+          {s.title}
+        </h3>
+        <p class="body-6 text-text-secondary">{s.text}</p>
+        <a
+          href={s.href}
+          class="button-sm inline-flex min-h-touch items-center text-text-info underline-offset-4 hover:underline"
+        >
+          {s.cta}
+        </a>
+      </div>
+    </li>
+  ))}
+</ol>

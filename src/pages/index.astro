@@ -1,17 +1,31 @@
 ---
 /**
  * Trang chủ (mục 4.2, theo landing-page-design). Một hành động chính: chọn cấp học.
+ * Phong cách tham khảo các web học lập trình: màu tươi, nút nổi, linh vật, dải chủ đề, lộ trình.
  * Mọi con số lấy từ nội dung lúc build, không gõ tay.
  */
 import {
+  ArrowRightIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  DatabaseIcon,
   ExamIcon,
+  FlowArrowIcon,
   NotebookIcon,
+  PlayIcon,
+  PuzzlePieceIcon,
+  SealCheckIcon,
   TerminalWindowIcon,
   TreeStructureIcon,
   WarningIcon,
 } from '@phosphor-icons/react/ssr';
+import Mascot from '../components/brand/Mascot.astro';
+import Roadmap from '../components/brand/Roadmap.astro';
+import StreakCard from '../components/brand/StreakCard.astro';
+import TopicMarquee from '../components/brand/TopicMarquee.astro';
 import Accordion from '../components/ui/Accordion.astro';
 import Button from '../components/ui/Button.astro';
+import CodeBlock from '../components/ui/CodeBlock.astro';
 import Visualizer from '../components/viz/Visualizer.astro';
 import { LEVEL_INFO } from '../data/taxonomy';
 import { PUZZLES } from '../data/puzzles';
@@ -29,13 +43,24 @@ const totalTests = verified.reduce((s, v) => s + v.tests, 0);
 const totalStress = verified.reduce((s, v) => s + v.stressRounds, 0);
 const count = (level: string) => lessons.filter((l) => l.data.level === level).length;
 
+// Ô code ở hero: trích đúng các dòng chính của lời giải đã kiểm chứng (bỏ phần đọc ghi file).
+const heroProblem = problems.find((p) => p.id === 'tong-chu-so');
+const heroVerify = heroProblem ? verifyOf(heroProblem.id) : null;
+const heroCode = `s = data[0].decode()  # giữ n ở dạng xâu
+tong = 0
+for c in s:
+    tong += ord(c) - 48  # '0' có mã 48
+out = str(tong)`;
+
 const paths = [
   {
     level: 'tieu-hoc',
     title: 'Tiểu học',
     outcome: 'Chia việc thành các bước, dùng lặp và rẽ nhánh qua câu đố robot, thẻ nhị phân.',
     contest: 'Chuẩn bị cho Tin học trẻ bảng Tiểu học',
-    span: 'md:col-span-2',
+    icon: PuzzlePieceIcon,
+    panel: 'bg-surface-success-subtle text-text-success-inverted',
+    edge: 'hover:border-border-success',
   },
   {
     level: 'thcs',
@@ -43,7 +68,9 @@ const paths = [
     outcome:
       'Thuật toán, sơ đồ khối, tìm kiếm, sắp xếp; chuyển từ khối lệnh sang Python để thi học sinh giỏi lớp 9.',
     contest: 'Học sinh giỏi THCS, Tin học trẻ bảng THCS',
-    span: 'md:col-span-3',
+    icon: FlowArrowIcon,
+    panel: 'bg-surface-info-subtle text-text-info-inverted',
+    edge: 'hover:border-border-action-primary',
   },
   {
     level: 'thpt',
@@ -51,7 +78,47 @@ const paths = [
     outcome:
       'Python, cơ sở dữ liệu và SQL, kỹ thuật mảng, quy hoạch động, đồ thị cho kỳ thi cấp tỉnh.',
     contest: 'Học sinh giỏi tỉnh Gia Lai, Tin học trẻ bảng THPT',
-    span: 'md:col-span-5',
+    icon: DatabaseIcon,
+    panel: 'bg-surface-accent-subtle text-text-on-warning',
+    edge: 'hover:border-border-warning',
+  },
+] as const;
+
+const stages = [
+  {
+    title: 'Tư duy máy tính',
+    text: `${PUZZLES.length} câu đố robot, thẻ nhị phân, sắp xếp các bước.`,
+    href: '/tu-duy',
+    cta: 'Giải câu đố',
+    tone: 'success',
+  },
+  {
+    title: 'Bài học theo cấp',
+    text: `${lessons.length} bài bám chương trình GDPT 2018, có câu hỏi kiểm tra.`,
+    href: '/hoc',
+    cta: 'Mở lộ trình',
+    tone: 'primary',
+  },
+  {
+    title: 'Xem thuật toán chạy',
+    text: `${ALGORITHMS.length} mô phỏng từng bước với dữ liệu của bạn.`,
+    href: '/mo-phong',
+    cta: 'Xem mô phỏng',
+    tone: 'accent',
+  },
+  {
+    title: 'Luyện đề có chấm',
+    text: `${problems.length} bài dạng đề học sinh giỏi, chấm thử ngay trên trình duyệt.`,
+    href: '/luyen-de',
+    cta: 'Làm bài luyện',
+    tone: 'error',
+  },
+  {
+    title: 'Thi thử bấm giờ',
+    text: 'Đề tổng hợp có giới hạn thời gian như phòng thi thật.',
+    href: '/thi-thu',
+    cta: 'Vào thi thử',
+    tone: 'inverted',
   },
 ] as const;
 
@@ -59,46 +126,24 @@ const trapPicks = ['sai-ten-file', 'doc-du-lieu-cham', 'truong-hop-bien', 'round
   .map((slug) => TRAPS.find((t) => t.slug === slug)!)
   .filter(Boolean);
 
-const benefits = [
+const doing = [
   {
     icon: TreeStructureIcon,
-    title: 'Xem thuật toán chạy với dữ liệu của bạn',
-    text: `${ALGORITHMS.length} thuật toán, mỗi bước tô sáng dòng giả mã, giá trị biến và giải thích bằng lời.`,
+    title: 'Mô phỏng từng bước',
+    text: 'Nhập dữ liệu của bạn, bấm chạy, xem dòng giả mã và giá trị biến đổi theo từng bước.',
     href: '/mo-phong',
-    span: 'md:col-span-4',
   },
   {
     icon: TerminalWindowIcon,
-    title: 'Chạy Python và SQL ngay trên trình duyệt',
-    text: 'Không cài đặt. Đọc ghi file như phòng thi, lỗi giải thích bằng tiếng Việt.',
+    title: 'Phòng lập trình Python và SQL',
+    text: 'Chạy code ngay trên trình duyệt, đọc ghi file như phòng thi, lỗi giải thích bằng tiếng Việt.',
     href: '/lap-trinh',
-    span: 'md:col-span-2',
   },
   {
     icon: ExamIcon,
-    title: 'Luyện đề có chấm thử',
-    text: `${problems.length} bài theo dạng đề học sinh giỏi tỉnh và Tin học trẻ, có gợi ý, giả mã, lời giải Python.`,
+    title: 'Chấm thử như Themis',
+    text: 'Chạy từng test, so kết quả, tính điểm; tải bộ test để tự chấm trên máy.',
     href: '/luyen-de',
-    span: 'md:col-span-2',
-  },
-  {
-    icon: NotebookIcon,
-    title: 'Cẩm nang phòng thi',
-    text: 'Bảng chọn thuật toán theo giới hạn n cho Python, mẫu code, danh sách kiểm trước khi nộp, lộ trình 12 tuần.',
-    href: '/cam-nang',
-    span: 'md:col-span-4',
-  },
-];
-
-const steps = [
-  { title: 'Chọn cấp học', text: 'Tiểu học, THCS hoặc THPT. Lựa chọn được nhớ lại cho lần sau.' },
-  {
-    title: 'Học và xem mô phỏng',
-    text: 'Mỗi bài học có ví dụ chạy được, câu hỏi kiểm tra và mô phỏng liên quan.',
-  },
-  {
-    title: 'Luyện đề và thi thử',
-    text: 'Làm bài, chấm thử, mở gợi ý khi bí, rồi làm đề thi thử có bấm giờ.',
   },
 ];
 
@@ -164,16 +209,22 @@ const tagline = [
   ['Mỗi', 'dòng', 'code', 'đều', 'có', 'lý', 'do'],
   ['Hiểu', 'lý', 'do', 'để', 'đạt', 'giải', 'cao'],
 ];
+
+const rotating = ['thuật toán', 'Python', 'SQL', 'đệ quy', 'đồ thị'];
+const sectionTitle = 'heading-5 sm:heading-4 md:heading-2 text-text-primary';
 ---
 
 <BaseLayout>
   <!-- 1. Hero -->
-  <section class="mx-auto grid w-full max-w-content grid-cols-1 items-center gap-600 px-200 pt-600 pb-800 md:px-400 lg:grid-cols-2 lg:pt-800">
+  <section class="mx-auto grid w-full max-w-content grid-cols-1 items-center gap-700 px-200 pt-600 pb-700 md:px-400 lg:grid-cols-2 lg:pt-800 lg:pb-800">
     <div class="flex max-w-hero flex-col gap-300">
-      <!-- Mỗi dòng đã đo vừa khung 680px ở heading-1 và 358px ở heading-4. -->
-      <h1 class="heading-4 sm:heading-2 lg:heading-3 xl:heading-1">
-        <span class="text-hero-gradient">
-          Hiểu thuật toán
+      <h1 class="heading-3 sm:heading-2 xl:heading-1">
+        <span class="sr-only">Hiểu thuật toán, tự tin vào phòng thi</span>
+        <span class="text-hero-gradient" aria-hidden="true">
+          Hiểu{' '}
+          <span class="rotate-word" data-rotate={JSON.stringify(rotating)}>
+            {rotating[0]}
+          </span>
           <br />
           Tự tin vào phòng thi
         </span>
@@ -182,21 +233,66 @@ const tagline = [
         Bài học bám chương trình GDPT 2018, mô phỏng thuật toán chạy ngay trên trình duyệt và kho đề
         luyện thi học sinh giỏi có lời giải Python đã kiểm chứng.
       </p>
-      <div class="flex flex-col items-start gap-200">
+      <div class="flex flex-wrap items-center gap-200">
         <Button href="#chon-cap" size="lg">
           Chọn cấp học của bạn
+          <ArrowRightIcon size={20} aria-hidden="true" />
         </Button>
-        <p class="caption-2 text-text-tertiary">
-          {lessons.length} bài học, {problems.length} bài luyện có lời giải đã kiểm định,{' '}
-          {ALGORITHMS.length} thuật toán mô phỏng. Miễn phí, không cần tài khoản.
-        </p>
+        <Button href="/lap-trinh" size="lg" variant="secondary">
+          <PlayIcon size={20} aria-hidden="true" />
+          Thử chạy Python
+        </Button>
       </div>
+      <ul class="flex flex-wrap gap-100" aria-label="Có gì trên LuyenTinHoc">
+        {[
+          `${lessons.length} bài học`,
+          `${problems.length} bài luyện đã kiểm chứng`,
+          `${ALGORITHMS.length} mô phỏng`,
+          'Miễn phí, không tài khoản',
+        ].map((label) => (
+          <li class="caption-1 inline-flex items-center gap-50 rounded-full border border-border-primary bg-surface-primary-subtle px-100 py-50 text-text-secondary">
+            <span class="inline-flex text-icon-success">
+              <CheckIcon size={14} weight="bold" aria-hidden="true" />
+            </span>
+            {label}
+          </li>
+        ))}
+      </ul>
     </div>
-    <div
-      class="min-w-0 rounded-24 border border-border-primary bg-surface-primary-subtle p-200 md:p-300"
-      aria-label="Mô phỏng sắp xếp nổi bọt chạy thử"
-    >
-      <Visualizer slug="sap-xep-noi-bot" compact />
+
+    <div class="relative min-w-0 pt-700 lg:pt-0">
+      <Mascot size={112} wave class="absolute -top-100 right-200 z-10 lg:-top-800 lg:right-400" />
+      <div class="raised edge-neutral relative flex flex-col gap-100 rounded-24 border border-border-primary bg-surface-primary p-100">
+        <div class="flex items-center gap-75 px-100 pt-75" aria-hidden="true">
+          <span class="size-100 rounded-full bg-surface-error" />
+          <span class="size-100 rounded-full bg-surface-warning" />
+          <span class="size-100 rounded-full bg-surface-success" />
+          <span class="caption-4 ml-100 text-text-tertiary">Phòng lập trình</span>
+        </div>
+        <CodeBlock code={heroCode} title="TONGCS.PY" />
+        <div class="grid grid-cols-2 gap-100">
+          <div class="flex flex-col gap-25 rounded-16 bg-surface-secondary p-200">
+            <span class="caption-4 text-text-tertiary">Dữ liệu vào</span>
+            <span class="body-2 font-mono text-text-primary">2026</span>
+          </div>
+          <div class="flex flex-col gap-25 rounded-16 bg-surface-secondary p-200">
+            <span class="caption-4 text-text-tertiary">Kết quả</span>
+            <span class="body-2 font-mono text-text-primary">10</span>
+          </div>
+        </div>
+        {heroVerify && heroProblem && (
+          <a
+            href={`/luyen-de/${heroProblem.id}`}
+            class="flex min-h-touch items-center gap-100 rounded-16 bg-surface-success-subtle px-200 py-100 text-text-success-inverted transition duration-300 ease-base hover:opacity-90"
+          >
+            <CheckCircleIcon size={24} weight="fill" aria-hidden="true" />
+            <span class="body-4 flex-1">
+              Lời giải bài {heroProblem.data.title} đạt {heroVerify.tests}/{heroVerify.tests} test
+            </span>
+            <ArrowRightIcon size={18} aria-hidden="true" />
+          </a>
+        )}
+      </div>
     </div>
   </section>
 
@@ -207,9 +303,10 @@ const tagline = [
     data-continue={resumeData}
     hidden
   >
-    <div class="flex flex-col gap-200 rounded-16 border border-border-action-primary bg-surface-primary p-300 md:flex-row md:items-center">
+    <div class="raised edge-primary flex flex-col gap-200 rounded-24 border border-border-action-primary bg-surface-primary p-300 md:flex-row md:items-center">
+      <Mascot size={64} />
       <div class="flex min-w-0 flex-1 flex-col gap-50">
-        <h2 id="tiep-tuc-title" class="title-2 text-text-primary">
+        <h2 id="tiep-tuc-title" class="title-1 text-text-primary">
           Chào mừng bạn quay lại
         </h2>
         <p class="body-6 text-text-secondary" data-continue-summary></p>
@@ -225,36 +322,55 @@ const tagline = [
     </div>
   </section>
 
-  <!-- 2. Chọn lộ trình -->
+  <!-- 2. Dải chủ đề -->
+  <section aria-label="Thuật toán có mô phỏng" class="pb-800">
+    <TopicMarquee />
+  </section>
+
+  <!-- 3. Chọn lộ trình -->
   <section
     id="chon-cap"
     aria-labelledby="chon-cap-title"
-    class="mx-auto flex w-full max-w-content scroll-mt-900 flex-col gap-400 px-200 pb-900 md:px-400"
+    class="mx-auto flex w-full max-w-content scroll-mt-900 flex-col gap-500 px-200 pb-900 md:px-400"
     data-rise
   >
     <div class="flex max-w-hero flex-col gap-100">
-      <h2 id="chon-cap-title" class="heading-5 md:heading-3 text-text-primary">
+      <h2 id="chon-cap-title" class={sectionTitle}>
         Bạn đang học cấp nào?
       </h2>
-      <p class="body-3 text-text-secondary">
+      <p class="body-3 md:title-2 text-text-secondary">
         Mỗi cấp có lộ trình riêng theo chương trình GDPT 2018 và kỳ thi tương ứng.
       </p>
     </div>
-    <ul class="grid grid-cols-1 gap-200 md:grid-cols-10">
-      {paths.map((p) => (
-        <li class:list={['flex', p.span]}>
+    <ul class="grid grid-cols-1 gap-300 md:grid-cols-3">
+      {paths.map(({ level, title, outcome, contest, icon: Icon, panel, edge }) => (
+        <li class="flex">
           <a
-            href={`/hoc/${p.level}`}
-            data-pick-level={p.level}
-            class="group flex w-full flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary p-300 transition duration-300 ease-base hover:border-border-action-primary hover:bg-surface-primary-hover active:translate-y-px"
+            href={`/hoc/${level}`}
+            data-pick-level={level}
+            class:list={[
+              'raised edge-neutral group flex w-full flex-col gap-200 rounded-24 border border-border-primary bg-surface-primary p-100 transition duration-300 ease-base',
+              edge,
+            ]}
           >
-            <span class="heading-5 text-text-primary">{p.title}</span>
-            <span class="body-6 text-text-secondary">{p.outcome}</span>
-            <span class="caption-2 mt-auto text-text-tertiary">
-              {count(p.level)} bài học. {p.contest}.
+            <span class:list={['flex items-center justify-between rounded-16 p-300', panel]}>
+              <Icon size={48} weight="duotone" aria-hidden="true" />
+              <span class="caption-3 rounded-full border border-current px-100 py-25">
+                Lớp {LEVEL_INFO[level].grades[0]} đến {LEVEL_INFO[level].grades.at(-1)}
+              </span>
             </span>
-            <span class="button-sm text-text-info">
-              Bắt đầu lộ trình {LEVEL_INFO[p.level].label}
+            <span class="flex flex-1 flex-col gap-100 px-200 pb-200">
+              <span class="heading-5 text-text-primary">{title}</span>
+              <span class="body-6 text-text-secondary">{outcome}</span>
+              <span class="caption-2 mt-auto pt-100 text-text-tertiary">
+                {count(level)} bài học. {contest}.
+              </span>
+              <span class="button-sm inline-flex items-center gap-50 pt-100 text-text-info">
+                Bắt đầu lộ trình {LEVEL_INFO[level].label}
+                <span class="inline-flex transition-transform duration-300 ease-base group-hover:translate-x-50">
+                  <ArrowRightIcon size={16} aria-hidden="true" />
+                </span>
+              </span>
             </span>
           </a>
         </li>
@@ -262,76 +378,238 @@ const tagline = [
     </ul>
   </section>
 
-  <!-- 3. Vấn đề và giải pháp -->
+  <!-- 4. Lộ trình năm chặng -->
+  <section aria-labelledby="lo-trinh" class="bg-surface-band" data-rise>
+    <div class="mx-auto flex w-full max-w-content flex-col gap-600 px-200 py-900 md:px-400">
+      <div class="flex max-w-hero flex-col gap-100">
+        <h2 id="lo-trinh" class={sectionTitle}>
+          Từ câu đố đầu tiên
+          <br />
+          tới phòng thi học sinh giỏi
+        </h2>
+        <p class="body-3 md:title-2 text-text-secondary">
+          Năm chặng xếp theo thứ tự một giáo viên sẽ dạy. Bắt đầu ở chặng hợp với bạn.
+        </p>
+      </div>
+      <Roadmap stages={stages} />
+    </div>
+  </section>
+
+  <!-- 5. Học bằng cách làm -->
   <section
-    aria-labelledby="mat-diem"
-    class="mx-auto grid w-full max-w-content grid-cols-1 gap-400 px-200 pb-900 md:px-400 lg:grid-cols-5"
+    aria-labelledby="hoc-bang-lam"
+    class="mx-auto grid w-full max-w-content grid-cols-1 items-center gap-600 px-200 py-900 md:px-400 lg:grid-cols-5"
     data-rise
   >
-    <div class="flex flex-col gap-200 lg:col-span-2">
-      <h2 id="mat-diem" class="heading-5 md:heading-3 text-text-primary">
-        Vì sao bài đúng ý tưởng vẫn mất điểm
+    <div class="flex flex-col gap-300 lg:col-span-2">
+      <h2 id="hoc-bang-lam" class="heading-5 sm:heading-4 md:heading-3 text-text-primary">
+        Học bằng cách làm
       </h2>
-      <p class="body-3 text-text-secondary">
-        Nhiều bài mất điểm không phải vì thuật toán sai mà vì một chi tiết nhỏ khi đọc ghi file, đọc
-        đề hay chọn hàm của Python. Thư viện bẫy gom {TRAPS.length} lỗi như vậy, mỗi lỗi có code
-        sai, code đúng chạy thử được.
+      <p class="body-3 md:title-2 text-text-secondary">
+        Không chỉ đọc lý thuyết: bạn chạy, sửa, xem kết quả ngay trên trình duyệt.
       </p>
-      <a
-        href="/bay-thuong-gap"
-        class="body-4 inline-flex min-h-touch items-center text-text-info underline underline-offset-4 hover:text-text-primary"
-      >
-        Xem {TRAPS.length} bẫy thường gặp
-      </a>
+      <ul class="flex flex-col gap-100">
+        {doing.map(({ icon: Icon, title, text, href }) => (
+          <li>
+            <a
+              href={href}
+              class="flex gap-200 rounded-16 p-200 transition duration-300 ease-base hover:bg-surface-primary-hover"
+            >
+              <span class="inline-flex size-600 shrink-0 items-center justify-center rounded-12 bg-surface-info-subtle text-icon-info-inverted">
+                <Icon size={24} aria-hidden="true" />
+              </span>
+              <span class="flex flex-col gap-25">
+                <span class="title-3 text-text-primary">{title}</span>
+                <span class="body-6 text-text-secondary">{text}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
-    <ul class="grid grid-cols-1 gap-200 sm:grid-cols-2 lg:col-span-3">
-      {trapPicks.map((t) => (
-        <li class="flex flex-col gap-100 rounded-16 border border-border-primary bg-surface-primary p-300">
-          <span class="inline-flex text-icon-warning">
-            <WarningIcon size={24} aria-hidden="true" />
-          </span>
-          <a
-            href={`/bay-thuong-gap/${t.slug}`}
-            class="title-3 inline-flex min-h-touch items-center text-text-primary underline-offset-4 hover:underline"
-          >
-            {t.title}
-          </a>
-          <p class="body-6 text-text-secondary">{t.signs}</p>
-        </li>
-      ))}
-    </ul>
+    <div
+      class="raised edge-neutral min-w-0 rounded-24 border border-border-primary bg-surface-primary-subtle p-100 lg:col-span-3"
+      aria-label="Mô phỏng sắp xếp nổi bọt chạy thử"
+    >
+      <div class="flex items-center gap-75 px-100 py-75" aria-hidden="true">
+        <span class="size-100 rounded-full bg-surface-error" />
+        <span class="size-100 rounded-full bg-surface-warning" />
+        <span class="size-100 rounded-full bg-surface-success" />
+        <span class="caption-4 ml-100 text-text-tertiary">Mô phỏng: sắp xếp nổi bọt</span>
+      </div>
+      <div class="rounded-16 bg-surface-primary p-200 md:p-300">
+        <Visualizer slug="sap-xep-noi-bot" compact />
+      </div>
+    </div>
   </section>
 
-  <!-- 4. Lợi ích -->
+  <!-- 6. Vấn đề và giải pháp -->
+  <section aria-labelledby="mat-diem" class="bg-surface-band" data-rise>
+    <div class="mx-auto grid w-full max-w-content grid-cols-1 gap-500 px-200 py-900 md:px-400 lg:grid-cols-5">
+      <div class="flex flex-col gap-200 lg:col-span-2">
+        <h2 id="mat-diem" class="heading-5 sm:heading-4 md:heading-3 text-text-primary">
+          Vì sao bài đúng ý tưởng
+          <br />
+          vẫn mất điểm
+        </h2>
+        <p class="body-3 text-text-secondary">
+          Nhiều bài mất điểm không phải vì thuật toán sai mà vì một chi tiết nhỏ khi đọc ghi file,
+          đọc đề hay chọn hàm của Python. Thư viện bẫy gom {TRAPS.length} lỗi như vậy, mỗi lỗi có
+          code sai, code đúng chạy thử được.
+        </p>
+        <div>
+          <Button href="/bay-thuong-gap" variant="secondary">
+            Xem {TRAPS.length} bẫy thường gặp
+          </Button>
+        </div>
+      </div>
+      <ul class="grid grid-cols-1 gap-200 sm:grid-cols-2 lg:col-span-3">
+        {trapPicks.map((t) => (
+          <li class="raised edge-neutral flex flex-col gap-100 rounded-24 border border-border-primary bg-surface-primary p-300">
+            <span class="inline-flex size-500 items-center justify-center rounded-12 bg-surface-warning-subtle text-icon-warning-inverted">
+              <WarningIcon size={22} weight="fill" aria-hidden="true" />
+            </span>
+            <a
+              href={`/bay-thuong-gap/${t.slug}`}
+              class="title-3 inline-flex min-h-touch items-center text-text-primary underline-offset-4 hover:underline"
+            >
+              {t.title}
+            </a>
+            <p class="body-6 text-text-secondary">{t.signs}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. Một nơi cho cả học, xem và luyện (bento) -->
   <section
     aria-labelledby="loi-ich"
-    class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pb-900 md:px-400"
+    class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 py-900 md:px-400"
     data-rise
   >
-    <h2 id="loi-ich" class="heading-5 md:heading-3 max-w-hero text-text-primary">
-      Một nơi cho cả học, xem và luyện
+    <h2 id="loi-ich" class:list={[sectionTitle, 'max-w-hero']}>
+      Một nơi cho cả
+      <br />
+      học, xem và luyện
     </h2>
-    <ul class="grid grid-cols-1 gap-200 md:grid-cols-6">
-      {benefits.map(({ icon: Icon, title, text, href, span }) => (
-        <li class:list={['flex', span]}>
-          <a
-            href={href}
-            class="flex w-full flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle p-300 transition duration-300 ease-base hover:bg-surface-primary-hover active:translate-y-px"
+    <ul class="grid grid-cols-1 gap-300 md:grid-cols-6">
+      <li class="flex md:col-span-4">
+        <a
+          href="/mo-phong"
+          class="raised edge-neutral flex w-full flex-col gap-300 rounded-24 border border-border-primary bg-surface-primary p-100 transition duration-300 ease-base hover:border-border-action-primary md:flex-row"
+        >
+          <span
+            class="flex h-900 items-end gap-75 rounded-16 bg-surface-info-subtle p-200 md:h-auto md:w-1/2"
+            aria-hidden="true"
           >
-            <span class="inline-flex size-600 items-center justify-center rounded-12 bg-surface-info-subtle text-icon-info-inverted">
-              <Icon size={24} aria-hidden="true" />
+            {['h-300', 'h-600', 'h-400', 'h-700', 'h-200', 'h-500', 'h-800'].map((h, i) => (
+              <span
+                class:list={[
+                  'flex-1 rounded-4',
+                  h,
+                  i === 3 ? 'bg-surface-accent' : 'bg-action-primary',
+                ]}
+              />
+            ))}
+          </span>
+          <span class="flex flex-col justify-center gap-100 p-200">
+            <span class="inline-flex text-icon-info">
+              <TreeStructureIcon size={28} aria-hidden="true" />
             </span>
-            <span class="title-2 text-text-primary">{title}</span>
-            <span class="body-6 text-text-secondary">{text}</span>
-          </a>
-        </li>
-      ))}
+            <span class="title-1 text-text-primary">Xem thuật toán chạy với dữ liệu của bạn</span>
+            <span class="body-6 text-text-secondary">
+              {ALGORITHMS.length} thuật toán, mỗi bước tô sáng dòng giả mã, giá trị biến và giải
+              thích bằng lời.
+            </span>
+          </span>
+        </a>
+      </li>
+      <li class="flex md:col-span-2">
+        <a
+          href="/lap-trinh"
+          class="raised edge-neutral flex w-full flex-col gap-200 rounded-24 border border-border-primary bg-surface-primary p-100 transition duration-300 ease-base hover:border-border-action-primary"
+        >
+          <span
+            class="caption-2 flex flex-col gap-50 rounded-16 bg-surface-inverted p-200 font-mono text-text-inverted"
+            aria-hidden="true"
+          >
+            <span>&gt;&gt;&gt; ten = "An"</span>
+            <span>&gt;&gt;&gt; print("Xin chào", ten)</span>
+            <span>Xin chào An</span>
+          </span>
+          <span class="flex flex-col gap-100 px-200 pb-200">
+            <span class="title-1 text-text-primary">Chạy Python và SQL ngay trên trình duyệt</span>
+            <span class="body-6 text-text-secondary">
+              Không cài đặt. Đọc ghi file như phòng thi, lỗi giải thích bằng tiếng Việt.
+            </span>
+          </span>
+        </a>
+      </li>
+      <li class="flex md:col-span-2">
+        <a
+          href="/luyen-de"
+          class="raised edge-neutral flex w-full flex-col gap-200 rounded-24 border border-border-primary bg-surface-primary p-100 transition duration-300 ease-base hover:border-border-action-primary"
+        >
+          <span
+            class="flex flex-wrap gap-75 rounded-16 bg-surface-success-subtle p-200"
+            aria-hidden="true"
+          >
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <span class="caption-3 inline-flex items-center gap-25 rounded-full bg-surface-success px-100 py-25 text-text-on-warning">
+                <CheckIcon size={12} weight="bold" />
+                Test {n}
+              </span>
+            ))}
+          </span>
+          <span class="flex flex-col gap-100 px-200 pb-200">
+            <span class="title-1 text-text-primary">Luyện đề có chấm thử</span>
+            <span class="body-6 text-text-secondary">
+              {problems.length} bài theo dạng đề học sinh giỏi tỉnh và Tin học trẻ, có gợi ý, giả
+              mã, lời giải Python.
+            </span>
+          </span>
+        </a>
+      </li>
+      <li class="flex md:col-span-4">
+        <a
+          href="/cam-nang"
+          class="raised edge-neutral flex w-full flex-col gap-300 rounded-24 border border-border-primary bg-surface-primary p-100 transition duration-300 ease-base hover:border-border-action-primary md:flex-row"
+        >
+          <span
+            class="flex flex-col gap-75 rounded-16 bg-surface-accent-subtle p-200 text-text-on-warning md:w-1/2"
+            aria-hidden="true"
+          >
+            {[
+              'Đúng tên file vào ra',
+              'Đọc nhanh bằng sys.stdin',
+              'Thử n nhỏ nhất, lớn nhất',
+              'Đo thời gian bộ test lớn',
+            ].map((item) => (
+              <span class="body-5 flex items-center gap-75">
+                <CheckCircleIcon size={18} weight="fill" />
+                {item}
+              </span>
+            ))}
+          </span>
+          <span class="flex flex-col justify-center gap-100 p-200">
+            <span class="inline-flex text-icon-warning">
+              <NotebookIcon size={28} aria-hidden="true" />
+            </span>
+            <span class="title-1 text-text-primary">Cẩm nang phòng thi</span>
+            <span class="body-6 text-text-secondary">
+              Bảng chọn thuật toán theo giới hạn n cho Python, mẫu code, danh sách kiểm trước khi
+              nộp, lộ trình 12 tuần.
+            </span>
+          </span>
+        </a>
+      </li>
     </ul>
   </section>
 
-  <!-- 5. Câu khẩu hiệu hiện từng chữ -->
+  <!-- 8. Câu khẩu hiệu hiện từng chữ -->
   <section aria-label="Khẩu hiệu" class="mx-auto w-full max-w-content px-200 py-900 md:px-400">
-    <p class="heading-4 md:heading-3 max-w-hero text-text-primary" data-word-reveal>
+    <p class="heading-4 sm:heading-3 lg:heading-2 text-text-primary" data-word-reveal>
       {tagline.map((line, i) => (
         <>
           {i > 0 && <br />}
@@ -345,70 +623,87 @@ const tagline = [
     </p>
   </section>
 
-  <!-- 6. Cách hoạt động -->
-  <section
-    aria-labelledby="cach-hoc"
-    class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pb-900 md:px-400"
-    data-rise
-  >
-    <h2 id="cach-hoc" class="heading-5 md:heading-3 text-text-primary">
-      Học theo ba bước
-    </h2>
-    <ol class="grid grid-cols-1 gap-200 md:grid-cols-3">
-      {steps.map((s, i) => (
-        <li class="flex flex-col gap-100 rounded-16 border border-border-primary p-300">
-          <span class="caption-3 inline-flex size-500 items-center justify-center rounded-full bg-surface-secondary text-text-primary">
-            {i + 1}
-          </span>
-          <span class="title-2 text-text-primary">{s.title}</span>
-          <span class="body-6 text-text-secondary">{s.text}</span>
-        </li>
-      ))}
-    </ol>
+  <!-- 9. Mỗi ngày một chút: chuỗi ngày học thật từ trình duyệt -->
+  <section aria-labelledby="moi-ngay" class="bg-surface-band" data-rise>
+    <div class="mx-auto grid w-full max-w-content grid-cols-1 items-center gap-600 px-200 py-900 md:px-400 lg:grid-cols-2">
+      <div class="flex flex-col gap-200">
+        <h2 id="moi-ngay" class={sectionTitle}>
+          Mỗi ngày một chút
+          <br />
+          giữ chuỗi ngày học
+        </h2>
+        <p class="body-3 md:title-2 text-text-secondary">
+          Mỗi bài học xong, mỗi bài luyện nộp đều được ghi lại. Trang Tiến độ có huy hiệu, bài đã
+          học và nút xuất file để sao lưu.
+        </p>
+        <div>
+          <Button href="/tien-do" variant="secondary">
+            Xem tiến độ của bạn
+          </Button>
+        </div>
+      </div>
+      <StreakCard />
+    </div>
   </section>
 
-  <!-- 7. Bằng chứng trung thực -->
+  <!-- 10. Bằng chứng trung thực -->
   <section
     aria-labelledby="kiem-dinh"
-    class="mx-auto w-full max-w-content px-200 pb-900 md:px-400"
+    class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 py-900 md:px-400"
     data-rise
   >
-    <div class="flex flex-col gap-200 rounded-24 border border-border-primary bg-surface-primary p-300 md:p-500">
-      <h2 id="kiem-dinh" class="heading-5 md:heading-4 max-w-hero text-text-primary">
-        Lời giải được kiểm định trước khi xuất bản
+    <div class="flex max-w-hero flex-col gap-100">
+      <h2 id="kiem-dinh" class={sectionTitle}>
+        Lời giải được kiểm định
+        <br />
+        trước khi xuất bản
       </h2>
-      <dl class="grid grid-cols-1 gap-200 sm:grid-cols-3">
-        <div class="flex flex-col gap-25">
-          <dt class="caption-2 text-text-tertiary">Test chính thức của các bài</dt>
-          <dd class="heading-5 text-text-primary">{totalTests}</dd>
-        </div>
-        <div class="flex flex-col gap-25">
-          <dt class="caption-2 text-text-tertiary">Bộ test đối chiếu với lời giải trâu</dt>
-          <dd class="heading-5 text-text-primary">{totalStress}</dd>
-        </div>
-        <div class="flex flex-col gap-25">
-          <dt class="caption-2 text-text-tertiary">Câu đố tư duy tự biên soạn</dt>
-          <dd class="heading-5 text-text-primary">{PUZZLES.length}</dd>
-        </div>
-      </dl>
-      <p class="body-6 text-text-secondary">
+      <p class="body-3 text-text-secondary">
         Mỗi bài có một lời giải tối ưu và một lời giải trâu viết theo cách khác; hai lời giải phải
         cho cùng kết quả trên mọi bộ test ngẫu nhiên, và lời giải phải chạy kịp giới hạn thời gian
         trên bộ test lớn nhất. Bài chưa qua kiểm định không hiện trên trang.
       </p>
     </div>
+    <dl class="grid grid-cols-1 gap-300 sm:grid-cols-3">
+      <div class="raised edge-success flex flex-col gap-100 rounded-24 border border-border-success bg-surface-primary p-300">
+        <span class="inline-flex text-icon-success">
+          <SealCheckIcon size={32} weight="duotone" aria-hidden="true" />
+        </span>
+        <dt class="body-5 order-last text-text-secondary">Test chính thức của các bài</dt>
+        <dd class="heading-3 text-text-primary">{totalTests}</dd>
+      </div>
+      <div class="raised edge-info flex flex-col gap-100 rounded-24 border border-border-action-primary bg-surface-primary p-300">
+        <span class="inline-flex text-icon-info">
+          <ExamIcon size={32} weight="duotone" aria-hidden="true" />
+        </span>
+        <dt class="body-5 order-last text-text-secondary">Bộ test đối chiếu với lời giải trâu</dt>
+        <dd class="heading-3 text-text-primary">{totalStress}</dd>
+      </div>
+      <div class="raised edge-warning flex flex-col gap-100 rounded-24 border border-border-warning bg-surface-primary p-300">
+        <span class="inline-flex text-icon-warning">
+          <PuzzlePieceIcon size={32} weight="duotone" aria-hidden="true" />
+        </span>
+        <dt class="body-5 order-last text-text-secondary">Câu đố tư duy tự biên soạn</dt>
+        <dd class="heading-3 text-text-primary">{PUZZLES.length}</dd>
+      </div>
+    </dl>
   </section>
 
-  <!-- 8. FAQ -->
+  <!-- 11. FAQ -->
   <section
     aria-labelledby="hoi-dap"
-    class="mx-auto flex w-full max-w-content flex-col gap-300 px-200 pb-900 md:px-400"
+    class="mx-auto grid w-full max-w-content grid-cols-1 gap-500 px-200 pb-900 md:px-400 lg:grid-cols-3"
     data-rise
   >
-    <h2 id="hoi-dap" class="heading-5 md:heading-3 text-text-primary">
-      Câu hỏi thường gặp
-    </h2>
-    <div class="flex max-w-reading flex-col gap-100">
+    <div class="flex flex-col gap-200">
+      <h2 id="hoi-dap" class="heading-5 sm:heading-4 md:heading-3 text-text-primary">
+        Câu hỏi thường gặp
+      </h2>
+      <p class="body-3 text-text-secondary">
+        Chưa thấy câu trả lời? Gửi thư tới {SITE.contactEmail}.
+      </p>
+    </div>
+    <div class="flex flex-col gap-100 lg:col-span-2">
       {faq.map((f) => (
         <Accordion title={f.q} name="faq">
           <p>{f.a}</p>
@@ -421,18 +716,27 @@ const tagline = [
     />
   </section>
 
-  <!-- 9. Kêu gọi cuối -->
-  <section class="mx-auto w-full max-w-content px-200 pb-600 md:px-400">
-    <div class="flex flex-col items-start gap-200 rounded-24 bg-surface-secondary p-300 md:p-600">
-      <h2 class="heading-5 md:heading-3 max-w-hero text-text-primary">
-        Bắt đầu từ cấp học của bạn
-      </h2>
-      <p class="body-3 max-w-hero text-text-secondary">
-        Miễn phí, không cần tài khoản, tiến độ lưu ngay trên máy bạn.
-      </p>
-      <Button href="#chon-cap" size="lg">
-        Chọn cấp học của bạn
-      </Button>
+  <!-- 12. Kêu gọi cuối -->
+  <section class="mx-auto w-full max-w-content px-200 pb-700 md:px-400">
+    <div class="raised edge-primary flex flex-col items-start gap-400 rounded-24 bg-action-primary p-400 md:flex-row md:items-center md:p-700">
+      <div class="flex flex-1 flex-col items-start gap-200">
+        <h2 class="heading-4 md:heading-2 max-w-hero text-text-on-action">
+          Bắt đầu từ
+          <br />
+          cấp học của bạn
+        </h2>
+        <p class="body-3 md:title-2 max-w-hero text-text-on-action">
+          Miễn phí, không cần tài khoản, tiến độ lưu ngay trên máy bạn.
+        </p>
+        <a
+          href="#chon-cap"
+          class="raised edge-neutral button-lg inline-flex min-h-touch items-center gap-75 rounded-12 bg-surface-primary px-300 py-100 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover"
+        >
+          Chọn cấp học của bạn
+          <ArrowRightIcon size={20} aria-hidden="true" />
+        </a>
+      </div>
+      <Mascot size={180} wave class="hidden md:block" />
     </div>
   </section>
 </BaseLayout>
@@ -484,6 +788,21 @@ const tagline = [
       }
       box.hidden = false;
     }
+  }
+
+  // Chữ xoay trong tiêu đề hero (bản đọc màn hình dùng câu tĩnh, chữ xoay có aria-hidden).
+  const rotate = document.querySelector<HTMLElement>('[data-rotate]');
+  if (rotate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const words = JSON.parse(rotate.dataset.rotate ?? '[]') as string[];
+    let index = 0;
+    window.setInterval(() => {
+      rotate.classList.add('is-out');
+      window.setTimeout(() => {
+        index = (index + 1) % words.length;
+        rotate.textContent = words[index] ?? '';
+        rotate.classList.remove('is-out');
+      }, 300);
+    }, 2600);
   }
 
   // Chọn một lộ trình thì nhớ cấp học cho toàn trang.

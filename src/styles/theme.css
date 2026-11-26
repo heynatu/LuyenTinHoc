@@ -39,6 +39,7 @@
   --color-surface-warning-hover: var(--surface-warning-hover);
   --color-surface-success: var(--surface-success);
   --color-surface-success-subtle: var(--surface-success-subtle);
+  --color-surface-band: var(--surface-band);
   --color-action-primary: var(--action-primary);
   --color-action-primary-hover: var(--action-primary-hover);
   --color-action-primary-click: var(--action-primary-click);
@@ -144,6 +145,7 @@
   --surface-warning-hover: var(--core-yellow-600);
   --surface-success: var(--core-green-500);
   --surface-success-subtle: var(--core-green-50);
+  --surface-band: var(--core-primary-50);
   --action-primary: var(--core-primary-500);
   --action-primary-hover: var(--core-primary-600);
   --action-primary-click: var(--core-primary-700);
@@ -248,6 +250,7 @@
   --surface-warning-hover: var(--core-yellow-700);
   --surface-success: var(--core-green-500);
   --surface-success-subtle: var(--core-green-100);
+  --surface-band: var(--core-grayscale-850);
   --action-primary: var(--core-primary-500);
   --action-primary-hover: var(--core-primary-700);
   --action-primary-click: var(--core-primary-600);
@@ -354,6 +357,7 @@
     --surface-warning-hover: var(--core-yellow-700);
     --surface-success: var(--core-green-500);
     --surface-success-subtle: var(--core-green-100);
+    --surface-band: var(--core-grayscale-850);
     --action-primary: var(--core-primary-500);
     --action-primary-hover: var(--core-primary-700);
     --action-primary-click: var(--core-primary-600);
