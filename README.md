@@ -55,24 +55,26 @@ Một số máy Windows bật App Control (Smart App Control) chặn file native
 
 ## Đưa lên GitHub
 
-1. Tạo repo mới trên GitHub (public hoặc private), chưa thêm file nào.
+> **Không tải lên bằng cách kéo thả trên trang web GitHub.** Trang web chỉ nhận tối đa 100 file mỗi lần (dự án có khoảng 470 file) và dễ sót thư mục con. Vercel sẽ báo lỗi kiểu `Cannot find module '/vercel/path0/scripts/...'`. Hãy dùng một trong hai cách dưới đây; cả hai đều đẩy đủ mọi file.
+
+Thư mục này đã là một repo git (nhánh `main`, đã commit đủ file). Kiểm tra nhanh:
+
+```powershell
+git status
+```
+
+Phải thấy `nothing to commit, working tree clean`.
+
+### Cách 1: GitHub Desktop (dễ nhất, không cần gõ lệnh)
+
+1. Cài GitHub Desktop từ desktop.github.com và đăng nhập.
+2. File, Add local repository, chọn thư mục `tu-duy-tin` này.
+3. Bấm **Publish repository**, đặt tên, chọn Public hoặc Private, bấm Publish.
+
+### Cách 2: dòng lệnh
+
+1. Tạo repo mới trên GitHub, **để trống** (không thêm README, .gitignore hay license).
 2. Trong thư mục dự án:
-
-```powershell
-git init
-```
-
-```powershell
-git add .
-```
-
-```powershell
-git commit -m "Khởi tạo Tư Duy Tin"
-```
-
-```powershell
-git branch -M main
-```
 
 ```powershell
 git remote add origin https://github.com/<tài khoản>/<tên repo>.git
@@ -82,12 +84,16 @@ git remote add origin https://github.com/<tài khoản>/<tên repo>.git
 git push -u origin main
 ```
 
+Nếu repo trên GitHub đã có file từ lần tải lên trước (bị thiếu), cách gọn nhất là xóa repo đó (Settings, Danger Zone, Delete this repository), tạo repo trống mới rồi đẩy lại.
+
 3. Mở tab Actions trên GitHub: workflow `ci` phải xanh.
+
+Nếu repo mới tạo bằng `git init` ở máy khác: chạy `git add -A` rồi `git commit -m "Khởi tạo Tư Duy Tin"` trước khi đẩy. File `.gitignore` đã loại `node_modules`, `dist` và các thư mục tạm.
 
 ## Triển khai Vercel
 
 1. Vào vercel.com, chọn **Add New**, **Project**, **Import** repo vừa tạo.
-2. Framework Preset: **Astro** (tự nhận). Build Command: `npm run build`. Output Directory: `dist`. **Không cần biến môi trường.**
+2. Framework Preset: **Astro** (tự nhận). Build Command: `npm run build`. Output Directory: `dist`. **Root Directory để trống** (file `package.json` nằm ngay gốc repo). **Không cần biến môi trường.**
 3. Bấm **Deploy**. Từ đó mỗi lần push lên `main` sẽ tự triển khai; mỗi Pull Request có bản Preview riêng.
 4. Tùy chọn: gắn tên miền riêng trong Settings, Domains; rồi sửa `SITE_URL` trong `astro.config.mjs`, `url` trong `src/site.config.ts`, dòng Sitemap trong `public/robots.txt`.
 5. Sau khi deploy: mở vài trang, tải lại, mở một đường dẫn sai để thấy trang 404, và kiểm tra header bảo mật:

@@ -11,7 +11,7 @@
   "scripts": {
     "predev": "node scripts/ensure-native.mjs && node scripts/build-tokens.mjs && node scripts/copy-wasm.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/check-repo.cjs && node scripts/ensure-native.mjs && node scripts/build-tokens.mjs && node scripts/copy-wasm.mjs",
+    "prebuild": "node -e \"require('fs').existsSync('scripts/check-repo.cjs')||(console.error('Repo thiếu thư mục scripts/. Hãy đẩy đủ mọi file lên GitHub bằng git, xem README.md.'),process.exit(1))\" && node scripts/check-repo.cjs && node scripts/ensure-native.mjs && node scripts/build-tokens.mjs && node scripts/copy-wasm.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint . && prettier --check .",

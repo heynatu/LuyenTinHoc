@@ -13,6 +13,7 @@ export default [
       'public/sqljs/',
       'playwright-report/',
       'test-results/',
+      'demo/',
     ],
   },
   js.configs.recommended,
@@ -22,5 +23,11 @@ export default [
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },
+  },
+  {
+    // Script CommonJS (chạy được cả khi repo thiếu file, xem scripts/check-repo.cjs).
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
 ];
