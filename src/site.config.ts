@@ -4,8 +4,8 @@
  */
 export const SITE = {
   name: 'Tư Duy Tin',
-  slug: 'tu-duy-tin',
-  url: 'https://tu-duy-tin.vercel.app',
+  slug: 'luyentinhoc',
+  url: 'https://luyentinhoc.vercel.app',
   description:
     'Học tin học theo chương trình GDPT 2018, xem thuật toán chạy từng bước và luyện đề thi học sinh giỏi, Tin học trẻ với lời giải Python đã kiểm chứng.',
   organization: 'Giáo viên Nguyễn An Thu Uyên',

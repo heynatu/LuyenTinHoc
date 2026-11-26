@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { rehypeCodeFrame, remarkCallouts } from './src/lib/markdown/plugins.ts';
 
 // TEN_MIEN (Phần 0). Đổi khi gắn tên miền riêng.
-const SITE_URL = 'https://tu-duy-tin.vercel.app';
+const SITE_URL = 'https://luyentinhoc.vercel.app';
 
 /** Trang không đưa vào sitemap (đồng thời có noindex trong trang). */
 const NOINDEX_PATHS = ['/thiet-ke', '/tien-do', '/thi-thu/'];

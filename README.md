@@ -2,6 +2,8 @@
 
 Website miễn phí giúp học sinh Tiểu học, THCS, THPT học tin học theo chương trình GDPT 2018, xem thuật toán chạy từng bước, chạy Python và SQL ngay trên trình duyệt, và luyện đề thi học sinh giỏi, Tin học trẻ với lời giải Python đã kiểm chứng.
 
+Repo GitHub: `LuyenTinHoc`. Địa chỉ web trên Vercel: `https://luyentinhoc.vercel.app`.
+
 Trạng thái: **bản đầy đủ tính năng, nội dung đang bổ sung dần.** Xem `docs/PROGRESS.md`.
 
 ## Có gì trong website
@@ -68,16 +70,16 @@ Phải thấy `nothing to commit, working tree clean`.
 ### Cách 1: GitHub Desktop (dễ nhất, không cần gõ lệnh)
 
 1. Cài GitHub Desktop từ desktop.github.com và đăng nhập.
-2. File, Add local repository, chọn thư mục `tu-duy-tin` này.
-3. Bấm **Publish repository**, đặt tên, chọn Public hoặc Private, bấm Publish.
+2. File, Add local repository, chọn thư mục `LuyenTinHoc` này.
+3. Bấm **Publish repository**, đặt tên `LuyenTinHoc`, chọn Public hoặc Private, bấm Publish.
 
 ### Cách 2: dòng lệnh
 
-1. Tạo repo mới trên GitHub, **để trống** (không thêm README, .gitignore hay license).
+1. Tạo repo mới tên `LuyenTinHoc` trên GitHub, **để trống** (không thêm README, .gitignore hay license).
 2. Trong thư mục dự án:
 
 ```powershell
-git remote add origin https://github.com/<tài khoản>/<tên repo>.git
+git remote add origin https://github.com/<tài khoản>/LuyenTinHoc.git
 ```
 
 ```powershell
@@ -92,14 +94,14 @@ Nếu repo mới tạo bằng `git init` ở máy khác: chạy `git add -A` r�
 
 ## Triển khai Vercel
 
-1. Vào vercel.com, chọn **Add New**, **Project**, **Import** repo vừa tạo.
+1. Vào vercel.com, chọn **Add New**, **Project**, **Import** repo `LuyenTinHoc` vừa tạo. Project Name để `luyentinhoc` (Vercel chỉ nhận chữ thường nên tự đổi `LuyenTinHoc` thành `luyentinhoc`); địa chỉ web sẽ là `https://luyentinhoc.vercel.app`.
 2. Framework Preset: **Astro** (tự nhận). Build Command: `npm run build`. Output Directory: `dist`. **Root Directory để trống** (file `package.json` nằm ngay gốc repo). **Không cần biến môi trường.**
 3. Bấm **Deploy**. Từ đó mỗi lần push lên `main` sẽ tự triển khai; mỗi Pull Request có bản Preview riêng.
-4. Tùy chọn: gắn tên miền riêng trong Settings, Domains; rồi sửa `SITE_URL` trong `astro.config.mjs`, `url` trong `src/site.config.ts`, dòng Sitemap trong `public/robots.txt`.
+4. Nếu Vercel cấp địa chỉ khác `luyentinhoc.vercel.app` (tên đã có người dùng), hoặc bạn gắn tên miền riêng trong Settings, Domains: sửa `SITE_URL` trong `astro.config.mjs`, `url` trong `src/site.config.ts`, dòng Sitemap trong `public/robots.txt`.
 5. Sau khi deploy: mở vài trang, tải lại, mở một đường dẫn sai để thấy trang 404, và kiểm tra header bảo mật:
 
 ```powershell
-curl.exe -I https://tu-duy-tin.vercel.app
+curl.exe -I https://luyentinhoc.vercel.app
 ```
 
 ## Cần điền trước khi công bố

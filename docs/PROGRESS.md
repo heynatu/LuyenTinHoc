@@ -101,7 +101,7 @@
 ## Chỗ trống cần người sở hữu điền
 
 - Đã điền: người biên soạn, email, giấy phép nội dung (CC BY-NC-SA 4.0).
-- Tên miền (mặc định `tu-duy-tin.vercel.app`) nếu khác
+- Tên miền (mặc định `luyentinhoc.vercel.app`, repo và project Vercel tên `LuyenTinHoc`) nếu Vercel cấp địa chỉ khác
 
 ## Chưa kiểm chứng
 
