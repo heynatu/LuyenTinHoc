@@ -26,6 +26,7 @@ import argparse
 import ast
 import contextlib
 import hashlib
+import functools
 import io
 import json
 import os
@@ -233,20 +234,26 @@ def load_gen(path: Path) -> dict:
 def lint(folder: Path, ci: bool) -> list[str]:
     files = sorted(folder.glob("*.py"))
     notes: list[str] = []
-    ruff_cli = tool_path("ruff")
-    vermin_cli = tool_path("vermin")
-    ruff = ruff_cli is not None or module_available("ruff")
-    vermin = vermin_cli is not None
-    if ruff:
-        cmd = [ruff_cli] if ruff_cli else [sys.executable, "-m", "ruff"]
+    # Ưu tiên gọi qua trình thông dịch đang chạy: không cần file .exe của pip, nên chạy được
+    # cả trên máy Windows có App Control chặn file .exe trong venv.
+    ruff_cmd = tool_command("ruff", (sys.executable, "-m", "ruff"))
+    vermin_cmd = tool_command(
+        "vermin", (sys.executable, "-c", "import sys, vermin; sys.exit(vermin.main())")
+    )
+    ruff = ruff_cmd is not None
+    vermin = vermin_cmd is not None
+    if ruff_cmd:
         proc = subprocess.run(
-            [*cmd, "check", "--quiet", *map(str, files)], cwd=ROOT, capture_output=True, check=False
+            [*ruff_cmd, "check", "--quiet", *map(str, files)],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
         )
         if proc.returncode != 0:
             raise Fail("ruff báo lỗi:\n" + (proc.stdout + proc.stderr).decode("utf-8", "replace"))
-    if vermin_cli:
+    if vermin_cmd:
         proc = subprocess.run(
-            [vermin_cli, "-t=3.8-", "--no-tips", "--violations", *map(str, files)],
+            [*vermin_cmd, "-t=3.8-", "--no-tips", "--violations", *map(str, files)],
             capture_output=True,
             check=False,
         )
@@ -291,6 +298,15 @@ def module_available(name: str) -> bool:
         [sys.executable, "-c", f"import {name}"], capture_output=True, check=False
     )
     return proc.returncode == 0
+
+
+@functools.cache
+def tool_command(name: str, module_cmd: tuple[str, ...]) -> list[str] | None:
+    """Lệnh gọi công cụ: qua module Python nếu đã cài, không thì file chạy trên PATH hoặc venv."""
+    if module_available(name):
+        return list(module_cmd)
+    found = tool_path(name)
+    return [found] if found else None
 
 
 def check_pseudo(folder: Path) -> int:

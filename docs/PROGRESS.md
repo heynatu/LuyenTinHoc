@@ -106,7 +106,7 @@
 ## Chưa kiểm chứng
 
 - Header bảo mật trên Vercel thật (chỉ kiểm chứng được sau khi deploy: `curl -I`). Đã kiểm bằng `scripts/serve-dist.mjs` dùng đúng `vercel.json`.
-- CI trên GitHub (chưa có repo), trong đó `verify_content.py --ci` với ruff và vermin.
+- CI trên GitHub (chưa có repo). Đã chạy thử trên bản clone sạch: `check:all`, e2e (71 đạt, 13 bỏ qua), `verify_content.py --ci` với ruff 0.17.6 và vermin 1.9.2 (23/23 bài đạt).
 - Lời giải trên Python 3.8 thật: mới kiểm cú pháp và danh sách hàm mới; chưa chạy bằng trình thông dịch 3.8.
 - Thời gian chấm thử trên máy yếu và điện thoại (chỉ đo trên máy dev).
 - Lighthouse; trình đọc màn hình thật (NVDA, VoiceOver).
