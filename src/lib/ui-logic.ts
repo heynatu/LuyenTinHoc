@@ -65,3 +65,15 @@ export const SOURCE_LABELS = {
 } as const;
 
 export type SourceKind = keyof typeof SOURCE_LABELS;
+
+/**
+ * Đường dẫn sạch của trang, khớp với URL thật trên Vercel (cleanUrls, không gạch chéo cuối).
+ * Khi build với `format: 'file'`, Astro.url.pathname có đuôi `.html` ("/hoc.html", "/index.html").
+ */
+export function cleanPath(pathname: string): string {
+  const path = pathname
+    .replace(/\.html$/, '')
+    .replace(/\/index$/, '')
+    .replace(/\/+$/, '');
+  return path === '' ? '/' : path;
+}

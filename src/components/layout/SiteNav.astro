@@ -4,13 +4,14 @@
  * Dưới 1024px: nút menu biến hình và bảng menu toàn chiều cao, link hiện lần lượt.
  */
 import { NAV_ITEMS, SITE } from '../../site.config';
+import { cleanPath } from '../../lib/ui-logic';
 import BrandMark from './BrandMark.astro';
 import LevelSwitcher from './LevelSwitcher.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import SearchDialog from './SearchDialog.astro';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr';
 
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const path = cleanPath(Astro.url.pathname);
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
 const delay = (index: number) => `--delay: ${Math.min(index * 60, 400)}ms`;
 ---

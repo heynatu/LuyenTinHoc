@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { highlightLines } from '../../src/lib/highlight';
 import { tokenizePseudocode } from '../../src/lib/pseudocode';
-import { nextTabIndex, paginationRange, ringGeometry } from '../../src/lib/ui-logic';
+import { cleanPath, nextTabIndex, paginationRange, ringGeometry } from '../../src/lib/ui-logic';
 import {
   BUTTON_VARIANTS,
   buttonClasses,
@@ -147,5 +147,20 @@ describe('recipe class', () => {
     for (const state of FIELD_STATES) expect(fieldClasses(state)).toContain('body-3');
     expect(fieldClasses('error')).toContain('border-border-error');
     expect(fieldClasses('interactive')).toContain('error:border-border-error');
+  });
+});
+
+describe('cleanPath', () => {
+  it('bỏ đuôi .html và index của bản build format file', () => {
+    expect(cleanPath('/index.html')).toBe('/');
+    expect(cleanPath('/hoc.html')).toBe('/hoc');
+    expect(cleanPath('/tu-duy/gap-giay.html')).toBe('/tu-duy/gap-giay');
+    expect(cleanPath('/hoc/index.html')).toBe('/hoc');
+  });
+  it('giữ nguyên đường dẫn sạch của dev server', () => {
+    expect(cleanPath('/')).toBe('/');
+    expect(cleanPath('')).toBe('/');
+    expect(cleanPath('/hoc')).toBe('/hoc');
+    expect(cleanPath('/hoc/')).toBe('/hoc');
   });
 });

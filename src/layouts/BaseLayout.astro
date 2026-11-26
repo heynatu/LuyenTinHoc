@@ -7,6 +7,7 @@ import SiteNav from '../components/layout/SiteNav.astro';
 import ToastRegion from '../components/ui/ToastRegion.astro';
 import tokens from '../design/tokens.generated.json';
 import { SITE } from '../site.config';
+import { cleanPath } from '../lib/ui-logic';
 
 interface Props {
   /** Tiêu đề riêng của trang; trang chủ để trống. */
@@ -26,7 +27,7 @@ const {
 const fullTitle = title
   ? `${title} | ${SITE.name}`
   : `${SITE.name}: học tin học từng bước, luyện thi học sinh giỏi`;
-const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', SITE.url).href;
+const canonical = new URL(cleanPath(Astro.url.pathname), SITE.url).href;
 const ogImageUrl = new URL(ogImage, SITE.url).href;
 const themeLight = tokens.core.grayscale['00'];
 const themeDark = tokens.core.grayscale['870'];
