@@ -1,0 +1,174 @@
+---
+/**
+ * Hộp tìm kiếm toàn trang (mục 4.1): mở bằng nút kính lúp hoặc phím "/", tìm không dấu,
+ * mũi tên lên xuống để chọn, Enter để mở, Escape để đóng. Chỉ mục tải lười lần đầu mở.
+ */
+import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react/ssr';
+import IconButton from '../ui/IconButton.astro';
+import { fieldClasses } from '../ui/recipes';
+
+const field = fieldClasses('interactive');
+---
+
+<dialog
+  id="tim-kiem"
+  class="ui-dialog mx-auto mt-900 mb-auto w-full max-w-hero rounded-16 border border-border-primary bg-surface-primary p-0 text-text-primary"
+  aria-label="Tìm kiếm trên Tư Duy Tin"
+  data-search-dialog
+>
+  <div class="flex flex-col gap-200 p-200 md:p-300">
+    <div class="flex items-center gap-100">
+      <label class="relative flex-1">
+        <span class="sr-only">Từ khóa tìm kiếm</span>
+        <span class="pointer-events-none absolute top-0 left-0 inline-flex h-full items-center pl-100 text-icon-subtle">
+          <MagnifyingGlassIcon size={20} aria-hidden="true" />
+        </span>
+        <input
+          type="search"
+          class:list={[field, 'pl-500']}
+          placeholder="Tìm bài học, bài luyện, thuật toán, bẫy… (không cần dấu)"
+          autocomplete="off"
+          spellcheck="false"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="tim-kiem-ket-qua"
+          aria-autocomplete="list"
+          data-search-input
+        />
+      </label>
+      <IconButton label="Đóng tìm kiếm" data-search-close>
+        <XIcon size={20} aria-hidden="true" />
+      </IconButton>
+    </div>
+    <p class="caption-2 text-text-tertiary" data-search-status aria-live="polite">
+      Gõ ít nhất 2 ký tự. Mũi tên lên xuống để chọn, Enter để mở.
+    </p>
+    <ul
+      id="tim-kiem-ket-qua"
+      role="listbox"
+      aria-label="Kết quả tìm kiếm"
+      class="flex max-h-editor flex-col gap-25 overflow-y-auto"
+      data-search-results
+    ></ul>
+  </div>
+</dialog>
+
+<script>
+  import { buildIndex, searchDocs, type SearchDoc, type SearchHit } from '../../lib/search';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+  if (dialog) {
+    const input = dialog.querySelector<HTMLInputElement>('[data-search-input]')!;
+    const list = dialog.querySelector<HTMLUListElement>('[data-search-results]')!;
+    const status = dialog.querySelector<HTMLElement>('[data-search-status]')!;
+    let index: ReturnType<typeof buildIndex> | null = null;
+    let loading: Promise<void> | null = null;
+    let hits: SearchHit[] = [];
+    let active = -1;
+
+    const load = () =>
+      (loading ??= fetch('/search-index.json')
+        .then((r) =>
+          r.ok ? (r.json() as Promise<SearchDoc[]>) : Promise.reject(new Error(String(r.status))),
+        )
+        .then((docs) => {
+          index = buildIndex(docs);
+        })
+        .catch(() => {
+          loading = null;
+          status.textContent =
+            'Không tải được chỉ mục tìm kiếm. Kiểm tra kết nối mạng rồi thử lại.';
+        }));
+
+    function render() {
+      list.replaceChildren();
+      hits.forEach((hit, i) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.id = `tim-kiem-muc-${i}`;
+        li.setAttribute('aria-selected', String(i === active));
+        const a = document.createElement('a');
+        a.href = hit.url;
+        a.tabIndex = -1;
+        a.className = `flex min-h-touch flex-col justify-center gap-25 rounded-8 px-100 py-75 transition duration-300 ease-base hover:bg-surface-primary-hover ${i === active ? 'bg-surface-primary-selected' : ''}`;
+        const title = document.createElement('span');
+        title.className = 'title-4 text-text-primary';
+        title.textContent = hit.title;
+        const kind = document.createElement('span');
+        kind.className = 'caption-4 text-text-tertiary';
+        kind.textContent = hit.kind;
+        a.append(title, kind);
+        li.append(a);
+        list.append(li);
+      });
+      input.setAttribute('aria-expanded', String(hits.length > 0));
+      if (active >= 0) input.setAttribute('aria-activedescendant', `tim-kiem-muc-${active}`);
+      else input.removeAttribute('aria-activedescendant');
+      list.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+    }
+
+    async function update() {
+      const q = input.value.trim();
+      if (q.length < 2) {
+        hits = [];
+        active = -1;
+        status.textContent = 'Gõ ít nhất 2 ký tự. Mũi tên lên xuống để chọn, Enter để mở.';
+        render();
+        return;
+      }
+      await load();
+      if (!index) return;
+      hits = searchDocs(index, q);
+      active = hits.length > 0 ? 0 : -1;
+      status.textContent =
+        hits.length > 0
+          ? `${hits.length} kết quả.`
+          : 'Không có kết quả. Thử từ khóa ngắn hơn hoặc từ khác.';
+      render();
+    }
+
+    function open() {
+      if (dialog!.open) return;
+      dialog!.showModal();
+      input.focus();
+      input.select();
+      void load();
+    }
+
+    input.addEventListener('input', () => void update());
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' && hits.length > 0) {
+        event.preventDefault();
+        active = (active + 1) % hits.length;
+        render();
+      } else if (event.key === 'ArrowUp' && hits.length > 0) {
+        event.preventDefault();
+        active = (active - 1 + hits.length) % hits.length;
+        render();
+      } else if (event.key === 'Enter' && active >= 0 && hits[active]) {
+        event.preventDefault();
+        location.href = hits[active]!.url;
+      }
+    });
+    dialog.querySelector('[data-search-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    document
+      .querySelectorAll('[data-search-open]')
+      .forEach((b) => b.addEventListener('click', open));
+
+    const editing = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      if (el.shadowRoot) return true; // ô soạn code CodeMirror nằm trong shadow root
+      return el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName);
+    };
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (editing(event.target) || editing(document.activeElement)) return;
+      event.preventDefault();
+      open();
+    });
+  }
+</script>

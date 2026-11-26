@@ -1,0 +1,25 @@
+---
+/** Giả mã tiếng Việt theo quy ước mục 5.3: từ khóa viết hoa được tô màu, có số dòng. */
+import { normalizeCode } from '../../lib/highlight';
+import { tokenizePseudocode } from '../../lib/pseudocode';
+import CodeFrame from './CodeFrame.astro';
+
+interface Props {
+  code: string;
+  title?: string;
+  highlight?: number[];
+  copy?: boolean;
+}
+
+const { code, title, highlight, copy = true } = Astro.props;
+---
+
+<CodeFrame
+  lines={tokenizePseudocode(code)}
+  raw={normalizeCode(code)}
+  title={title}
+  badge="Giả mã"
+  highlight={highlight}
+  copy={copy}
+  label={title ? `Giả mã ${title}` : 'Giả mã'}
+/>

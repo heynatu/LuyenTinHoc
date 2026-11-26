@@ -1,0 +1,130 @@
+---
+import { getCollection } from 'astro:content';
+import { ArrowLeftIcon, ArrowRightIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Visualizer from '../../components/viz/Visualizer.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { LEVEL_INFO, TOPICS } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { ALGORITHMS, CATEGORY_LABELS } from '../../lib/viz/registry';
+
+export function getStaticPaths() {
+  return ALGORITHMS.map((algo, i) => ({
+    params: { slug: algo.slug },
+    props: { index: i },
+  }));
+}
+
+const { index } = Astro.props;
+const algo = ALGORITHMS[index]!;
+const prev = ALGORITHMS[index - 1];
+const next = ALGORITHMS[index + 1];
+
+const problems = (await getCollection('problems')).filter(
+  (p) => (algo.problems ?? []).includes(p.id) || p.data.algorithms.includes(algo.slug),
+);
+const lessons = (await getCollection('lessons')).filter((l) =>
+  l.data.related.algorithms.includes(algo.slug),
+);
+const rows = [
+  ['Tốt nhất', algo.complexity.best],
+  ['Trung bình', algo.complexity.average],
+  ['Xấu nhất', algo.complexity.worst],
+  ['Bộ nhớ thêm', algo.complexity.memory],
+];
+---
+
+<BaseLayout title={`Mô phỏng: ${algo.title}`} description={algo.summary}>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title={algo.title}
+      lead={algo.summary}
+      crumbs={[{ label: 'Mô phỏng', href: '/mo-phong' }]}
+    >
+      <div class="flex flex-wrap gap-50">
+        <Tag>{CATEGORY_LABELS[algo.category].title}</Tag>
+        {algo.levels.map((level) => (
+          <Tag>{LEVEL_INFO[level].label}</Tag>
+        ))}
+        {algo.topics.map((topic) => (
+          <Tag>{TOPICS[topic]}</Tag>
+        ))}
+      </div>
+    </PageHeader>
+
+    <div class="prose-vi">
+      {algo.explain.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+    </div>
+
+    <Visualizer slug={algo.slug} />
+
+    <section aria-labelledby="do-phuc-tap" class="flex flex-col gap-200">
+      <h2 id="do-phuc-tap" class="heading-6 text-text-primary">
+        Độ phức tạp
+      </h2>
+      <dl class="grid grid-cols-2 gap-100 md:grid-cols-4">
+        {rows.map(([label, value]) => (
+          <div class="flex flex-col gap-25 rounded-12 border border-border-primary p-200">
+            <dt class="caption-3 text-text-tertiary">{label}</dt>
+            <dd class="body-4 font-mono text-text-primary">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    {(problems.length > 0 || lessons.length > 0) && (
+      <section aria-labelledby="lien-quan" class="flex flex-col gap-200">
+        <h2 id="lien-quan" class="heading-6 text-text-primary">
+          Học và luyện tiếp
+        </h2>
+        <ul class="flex flex-col gap-75">
+          {lessons.map((lesson) => (
+            <li>
+              <a
+                class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                href={`/hoc/${lesson.id}`}
+              >
+                Bài học: {lesson.data.title}
+              </a>
+            </li>
+          ))}
+          {problems.map((problem) => (
+            <li>
+              <a
+                class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                href={`/luyen-de/${problem.id}`}
+              >
+                Bài tập: {problem.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <nav aria-label="Thuật toán khác" class="flex flex-wrap justify-between gap-200">
+      {prev ? (
+        <a
+          href={`/mo-phong/${prev.slug}`}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          <ArrowLeftIcon size={16} aria-hidden="true" />
+          {prev.title}
+        </a>
+      ) : (
+        <span />
+      )}
+      {next && (
+        <a
+          href={`/mo-phong/${next.slug}`}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          {next.title}
+          <ArrowRightIcon size={16} aria-hidden="true" />
+        </a>
+      )}
+    </nav>
+  </div>
+</BaseLayout>

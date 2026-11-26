@@ -1,0 +1,220 @@
+---
+/**
+ * Thanh điều hướng nổi (mục 3.8): canh giữa, rộng vừa nội dung, nền mờ có blur.
+ * Dưới 1024px: nút menu biến hình và bảng menu toàn chiều cao, link hiện lần lượt.
+ */
+import { NAV_ITEMS, SITE } from '../../site.config';
+import BrandMark from './BrandMark.astro';
+import LevelSwitcher from './LevelSwitcher.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import SearchDialog from './SearchDialog.astro';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+const delay = (index: number) => `--delay: ${Math.min(index * 60, 400)}ms`;
+---
+
+<header class="pointer-events-none fixed inset-x-0 top-200 z-50 flex justify-center px-200">
+  <nav
+    aria-label="Điều hướng chính"
+    class="surface-glass pointer-events-auto flex items-center gap-100 rounded-full border border-border-primary p-75"
+  >
+    <a
+      href="/"
+      class="flex min-h-touch items-center gap-75 rounded-full px-100 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover"
+      aria-current={path === '/' ? 'page' : undefined}
+    >
+      <BrandMark />
+      <span class="title-3">{SITE.name}</span>
+    </a>
+
+    <ul class="hidden items-center gap-25 lg:flex">
+      {NAV_ITEMS.map((item) => (
+        <li>
+          {item.ready ? (
+            <a
+              href={item.href}
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+              class="title-4 flex min-h-touch items-center rounded-full px-200 text-text-secondary transition duration-300 ease-base hover:bg-surface-primary-hover hover:text-text-primary current:bg-surface-primary-selected current:text-text-primary"
+            >
+              {item.label}
+            </a>
+          ) : (
+            <span
+              aria-disabled="true"
+              title="Sắp có ở giai đoạn sau"
+              class="title-4 flex min-h-touch cursor-not-allowed items-center rounded-full px-200 text-text-tertiary"
+            >
+              {item.label}
+              <span class="sr-only"> (sắp có)</span>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+
+    <button
+      type="button"
+      class="inline-flex min-h-touch min-w-touch items-center justify-center rounded-full text-icon-default transition duration-300 ease-base hover:bg-surface-primary-hover active:scale-98"
+      aria-label="Tìm kiếm (phím /)"
+      aria-keyshortcuts="/"
+      title="Tìm kiếm (phím /)"
+      data-search-open
+    >
+      <MagnifyingGlassIcon size={20} aria-hidden="true" />
+    </button>
+
+    <div class="hidden items-center gap-50 lg:flex">
+      <LevelSwitcher id="level-desktop" />
+      <ThemeToggle />
+    </div>
+
+    <button
+      type="button"
+      class="menu-toggle relative inline-flex min-h-touch min-w-touch items-center justify-center rounded-full text-icon-default transition duration-300 ease-base hover:bg-surface-primary-hover lg:hidden"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      aria-label="Mở menu"
+      data-menu-toggle
+    >
+      <span class="menu-bar menu-bar-top" aria-hidden="true"></span>
+      <span class="menu-bar menu-bar-bottom" aria-hidden="true"></span>
+    </button>
+  </nav>
+</header>
+
+<SearchDialog />
+
+<div
+  id="mobile-menu"
+  class="mobile-panel surface-glass-strong fixed inset-0 z-40 flex flex-col overflow-y-auto px-300 pt-900 pb-600 lg:hidden"
+  data-open="false"
+  inert
+>
+  <nav aria-label="Menu di động" class="mx-auto flex w-full max-w-narrow flex-col gap-300">
+    <ul class="flex flex-col gap-75">
+      {NAV_ITEMS.map((item, index) => (
+        <li class="menu-item" style={delay(index)}>
+          {item.ready ? (
+            <a
+              href={item.href}
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+              class="heading-5 flex min-h-touch items-center rounded-12 px-200 py-100 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover current:bg-surface-primary-selected"
+            >
+              {item.label}
+            </a>
+          ) : (
+            <span
+              aria-disabled="true"
+              class="heading-5 flex min-h-touch items-center justify-between gap-200 rounded-12 px-200 py-100 text-text-tertiary"
+            >
+              {item.label}
+              <span class="caption-4 rounded-full border border-border-primary px-100 py-25 text-text-tertiary">
+                Sắp có
+              </span>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+    <div class="menu-item flex flex-col gap-100" style={delay(NAV_ITEMS.length)}>
+      <span class="caption-3 px-200 text-text-tertiary">Cấp học đang theo dõi</span>
+      <LevelSwitcher id="level-mobile" wide />
+    </div>
+    <div class="menu-item flex" style={delay(NAV_ITEMS.length + 1)}>
+      <ThemeToggle showLabel />
+    </div>
+  </nav>
+</div>
+
+<style>
+  .menu-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--spacing-300);
+    height: var(--spacing-25);
+    margin-left: calc(var(--spacing-300) / -2);
+    border-radius: var(--radius-full);
+    background-color: currentColor;
+    transition: transform 500ms var(--ease-base);
+  }
+  .menu-bar-top {
+    transform: translateY(calc(var(--spacing-50) * -1));
+  }
+  .menu-bar-bottom {
+    transform: translateY(var(--spacing-50));
+  }
+  .menu-toggle[aria-expanded='true'] .menu-bar-top {
+    transform: rotate(45deg);
+  }
+  .menu-toggle[aria-expanded='true'] .menu-bar-bottom {
+    transform: rotate(-45deg);
+  }
+
+  .mobile-panel {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 300ms var(--ease-base),
+      visibility 0s 300ms;
+  }
+  .mobile-panel[data-open='true'] {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 300ms var(--ease-base);
+  }
+  .menu-item {
+    opacity: 0;
+    transform: translateY(var(--spacing-300));
+    transition:
+      opacity 300ms var(--ease-base),
+      transform 500ms var(--ease-base);
+  }
+  .mobile-panel[data-open='true'] .menu-item {
+    opacity: 1;
+    transform: none;
+    transition-delay: var(--delay);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-item {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const panel = document.getElementById('mobile-menu');
+  const desktop = window.matchMedia('(min-width: 1024px)');
+
+  function setOpen(open: boolean, restoreFocus = true) {
+    if (!toggle || !panel) return;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
+    panel.dataset.open = String(open);
+    panel.inert = !open;
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    document.querySelectorAll<HTMLElement>('[data-inert-when-menu]').forEach((el) => {
+      el.inert = open;
+    });
+    if (open) {
+      panel.querySelector<HTMLElement>('a, select, button')?.focus({ preventScroll: true });
+    } else if (restoreFocus) {
+      toggle.focus({ preventScroll: true });
+    }
+  }
+
+  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') setOpen(false);
+  });
+  panel
+    ?.querySelectorAll('a')
+    .forEach((link) => link.addEventListener('click', () => setOpen(false, false)));
+  desktop.addEventListener('change', (event) => {
+    if (event.matches) setOpen(false, false);
+  });
+</script>

@@ -1,0 +1,57 @@
+---
+import PageShell from '../layouts/PageShell.astro';
+import { SITE } from '../site.config';
+---
+
+<PageShell
+  title="Điều khoản sử dụng"
+  description="Điều kiện sử dụng website Tư Duy Tin: miễn phí cho mục đích học tập, giấy phép mã nguồn và nội dung, quyền tác giả của đề thi."
+  lead="Tư Duy Tin miễn phí cho mục đích học tập và giảng dạy. Khi dùng website, bạn đồng ý với các điều khoản dưới đây."
+  updated="22/11/2026 (bản nháp)"
+>
+  <h2>Mục đích sử dụng</h2>
+  <p>
+    Website phục vụ học tập, ôn luyện và giảng dạy môn Tin học. Thầy cô được dùng nội dung trong lớp
+    học và buổi bồi dưỡng, kèm ghi nguồn.
+  </p>
+
+  <h2>Giấy phép</h2>
+  <ul>
+    <li>Mã nguồn website: giấy phép {SITE.codeLicense}.</li>
+    <li>
+      Bài học, lời giải, cẩm nang do website biên soạn: giấy phép{' '}
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.vi" rel="noopener noreferrer">
+        {SITE.contentLicense}
+      </a>
+      : được dùng, sửa, chia sẻ lại cho mục đích phi thương mại, ghi tên tác giả và giữ cùng giấy
+      phép.
+    </li>
+    <li>
+      Đề chính thức của các kỳ thi thuộc quyền tác giả của đơn vị ra đề. Website chỉ đăng khi có
+      nguồn rõ ràng và ghi đầy đủ nguồn trên từng bài.
+    </li>
+  </ul>
+
+  <h2>Độ chính xác</h2>
+  <p>
+    Lời giải được kiểm định tự động trước khi xuất bản, nhưng vẫn có thể còn sai sót. Thông tin về
+    thể lệ và cấu trúc đề thi có thể thay đổi theo từng năm; luôn đối chiếu với văn bản chính thức
+    của Sở Giáo dục và Đào tạo hoặc ban tổ chức. Website không chịu trách nhiệm về kết quả các kỳ
+    thi.
+  </p>
+
+  <h2>Chạy code trên trình duyệt</h2>
+  <p>
+    Code bạn viết chạy trên chính máy của bạn, có giới hạn thời gian. Chỉ chạy code bạn hiểu, kể cả
+    code được người khác gửi qua đường dẫn chia sẻ: code chia sẻ không bao giờ tự chạy khi mở trang.
+  </p>
+
+  <h2>Liên kết ngoài</h2>
+  <p>
+    Website có thể dẫn tới trang của đơn vị khác (văn bản chương trình, thể lệ kỳ thi). Chúng tôi
+    không kiểm soát nội dung các trang đó.
+  </p>
+
+  <h2>Thay đổi điều khoản</h2>
+  <p>Điều khoản có thể được cập nhật; ngày cập nhật ghi ở đầu trang.</p>
+</PageShell>

@@ -1,0 +1,47 @@
+---
+/**
+ * Button: 5 loại (primary, secondary, tertiary, error, warning) × 5 trạng thái, 4 cỡ.
+ * Có href thì render <a>, không thì <button>. `state` chỉ dùng để trưng bày ở /thiet-ke.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import {
+  buttonClasses,
+  cx,
+  type ButtonSize,
+  type ButtonVariant,
+  type VisualState,
+} from './recipes';
+
+interface Props extends Omit<HTMLAttributes<'button'>, 'type'> {
+  href?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  disabled?: boolean;
+  buttonType?: 'button' | 'submit' | 'reset';
+  state?: VisualState;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  disabled = false,
+  buttonType = 'button',
+  state,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const look = state ?? (disabled ? 'disabled' : 'interactive');
+const classes = cx(buttonClasses(variant, size, look), className);
+---
+
+{href && !disabled ? (
+  <a href={href} class={classes} {...(rest as HTMLAttributes<'a'>)}>
+    <slot />
+  </a>
+) : (
+  <button type={buttonType} class={classes} disabled={disabled || state === 'disabled'} {...rest}>
+    <slot />
+  </button>
+)}

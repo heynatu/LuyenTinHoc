@@ -1,0 +1,710 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './theme.css';
+
+/*
+ * Design system (Phần 3 của docs/SUPER_PROMPT.md).
+ * Reset các namespace mặc định của Tailwind để chỉ còn giá trị trong token:
+ * lớp ngoài danh sách (ví dụ p-5, rounded-lg, bg-red-500) không còn tồn tại.
+ */
+@theme {
+  /* Màu: reset và khai báo trong theme.css (sinh tự động). */
+  --text-*: initial;
+  --font-weight-*: initial;
+  --leading-*: initial;
+
+  --spacing: initial;
+  --spacing-*: initial;
+  --spacing-0: 0px;
+  --spacing-25: 2px;
+  --spacing-50: 4px;
+  --spacing-75: 8px;
+  --spacing-100: 12px;
+  --spacing-200: 16px;
+  --spacing-300: 24px;
+  --spacing-400: 32px;
+  --spacing-500: 40px;
+  --spacing-600: 48px;
+  --spacing-700: 64px;
+  --spacing-800: 80px;
+  --spacing-900: 96px;
+  /* Kích thước (không phải khoảng cách): vùng bấm tối thiểu 44px, chiều cao ô code */
+  --spacing-touch: 44px;
+  --spacing-editor: 420px;
+  --spacing-stage: 260px;
+  --spacing-editor-sm: 220px;
+
+  --radius-*: initial;
+  --radius-0: 0px;
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-full: 9999px;
+
+  --font-*: initial;
+  --font-sans: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --container-*: initial;
+  --container-content: 1280px;
+  --container-hero: 680px;
+  --container-reading: 880px;
+  --container-narrow: 480px;
+
+  --ease-*: initial;
+  --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 300ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --blur-*: initial;
+  --blur-nav: 16px;
+  --blur-panel: 24px;
+}
+
+/* Biến thể cho mục điều hướng của trang hiện tại. */
+@custom-variant current (&[aria-current='page']);
+
+/* Text styles: mỗi đoạn chữ dùng đúng một style có tên (bảng 3.2). */
+@utility heading-1 {
+  font-size: 3.75rem;
+  line-height: 1;
+  font-weight: 600;
+}
+@utility heading-2 {
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 600;
+}
+@utility heading-3 {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 600;
+}
+@utility heading-4 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 600;
+}
+@utility heading-5 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+@utility heading-6 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+@utility title-1 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+}
+@utility title-2 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+}
+@utility title-3 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+@utility title-4 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+@utility title-5 {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+@utility body-1 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@utility body-2 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+@utility body-3 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+@utility body-4 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+@utility body-5 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+@utility body-6 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+@utility button-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+@utility button-md {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@utility button-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+@utility button-xsm {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+@utility caption-1 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+@utility caption-2 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+@utility caption-3 {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+@utility caption-4 {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+@utility caption-5 {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 400;
+}
+
+/*
+ * Chữ gradient của tiêu đề hero: ngoại lệ duy nhất được dùng gradient, chỉ trên chữ.
+ * Gắn lên <span> nội tuyến bên trong <h1>: nền của phần tử nội tuyến phủ cả phần chữ trồi
+ * xuống dưới dòng (chân chữ g, dấu nặng), nên không bị cắt khi line height bằng cỡ chữ.
+ * box-decoration-break: clone cho mỗi dòng một gradient trái sang phải riêng.
+ */
+@utility text-hero-gradient {
+  display: inline;
+  background-image: linear-gradient(to right, var(--text-hero-start), var(--text-hero-end));
+  background-clip: text;
+  color: transparent;
+  box-decoration-break: clone;
+}
+
+/* Nền mờ trong suốt cho thanh điều hướng và menu di động. */
+@utility surface-glass {
+  background-color: color-mix(in oklab, var(--surface-primary) 78%, transparent);
+  backdrop-filter: blur(var(--blur-nav));
+}
+@utility surface-glass-strong {
+  background-color: color-mix(in oklab, var(--surface-primary) 96%, transparent);
+  backdrop-filter: blur(var(--blur-panel));
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--surface-primary);
+    color: var(--text-primary);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--surface-primary);
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Không dùng chữ nghiêng ở bất kỳ đâu, kể cả thẻ mặc định của trình duyệt. */
+  em,
+  i,
+  cite,
+  dfn,
+  var,
+  address {
+    font-style: normal;
+  }
+
+  em {
+    font-weight: 600;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--border-action-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--surface-info-subtle);
+    color: var(--text-info-inverted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-property: opacity !important;
+    }
+  }
+}
+
+/* Văn bản dài (trang phụ, bài học MDX): ánh xạ thẻ HTML sang text style có tên. */
+@layer components {
+  .prose-vi {
+    max-width: var(--container-hero);
+    color: var(--text-secondary);
+
+    & > * + * {
+      margin-top: var(--spacing-200);
+    }
+    & h2 {
+      @apply heading-5;
+      margin-top: var(--spacing-600);
+      color: var(--text-primary);
+    }
+    & h3 {
+      @apply title-1;
+      margin-top: var(--spacing-400);
+      color: var(--text-primary);
+    }
+    & p,
+    & li {
+      @apply body-3;
+    }
+    & ul,
+    & ol {
+      padding-left: var(--spacing-300);
+    }
+    & ul {
+      list-style: disc;
+    }
+    & ol {
+      list-style: decimal;
+    }
+    & li + li {
+      margin-top: var(--spacing-75);
+    }
+    & strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    & a {
+      color: var(--text-info);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    & a:hover {
+      color: var(--text-primary);
+    }
+    & h2,
+    & h3 {
+      scroll-margin-top: var(--spacing-900);
+    }
+    & :not(pre) > code {
+      @apply body-6;
+      font-family: var(--font-mono);
+      padding: var(--spacing-25) var(--spacing-50);
+      border-radius: var(--radius-4);
+      background-color: var(--surface-secondary);
+      color: var(--text-primary);
+    }
+    & table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    & th,
+    & td {
+      @apply body-6;
+      padding: var(--spacing-75) var(--spacing-100);
+      border: 1px solid var(--border-primary);
+      text-align: left;
+      vertical-align: top;
+    }
+    & th {
+      @apply body-4;
+      background-color: var(--surface-secondary);
+      color: var(--text-primary);
+    }
+    /* Trong Callout: giữ text style và màu của hộp (màu chữ đã kiểm tương phản với nền hộp). */
+    & .ui-callout p:not(.body-4),
+    & .ui-callout li {
+      @apply body-6;
+    }
+    & .ui-callout strong,
+    & .ui-callout a {
+      color: inherit;
+    }
+  }
+}
+
+/* ====================================================== Component (Giai đoạn 2) */
+
+/* Ô nhập đang lỗi: dùng aria-invalid để trình đọc màn hình cũng biết. */
+@custom-variant error (&[aria-invalid='true']);
+
+/* Vòng focus dùng chung (giống :focus-visible), để trưng bày trạng thái Focus ở /thiet-ke. */
+@utility focus-ring {
+  outline: 2px solid var(--border-action-primary);
+  outline-offset: 2px;
+}
+
+/* Mở rộng vùng bấm tối thiểu 44 × 44 mà không đổi kích thước nhìn thấy (tag, breadcrumb). */
+@utility touch-target {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--spacing-touch));
+    height: max(100%, var(--spacing-touch));
+    transform: translate(-50%, -50%);
+  }
+}
+
+@theme {
+  --animate-*: initial;
+  --animate-skeleton: skeleton 1.4s var(--ease-base) infinite alternate;
+  --animate-enter: enter 300ms var(--ease-base);
+
+  @keyframes skeleton {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.45;
+    }
+  }
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(var(--spacing-200));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer components {
+  /* Checkbox, Radio, Switch: input gốc của trình duyệt (bàn phím, form, trình đọc màn hình chạy sẵn). */
+  .ui-checkbox,
+  .ui-radio {
+    appearance: none;
+    flex-shrink: 0;
+    display: inline-grid;
+    place-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1px solid var(--border-action-secondary);
+    background-color: var(--surface-primary);
+    cursor: pointer;
+    transition:
+      background-color 300ms var(--ease-base),
+      border-color 300ms var(--ease-base);
+  }
+  .ui-checkbox {
+    border-radius: var(--radius-4);
+  }
+  .ui-radio {
+    border-radius: var(--radius-full);
+  }
+  .ui-checkbox::before {
+    content: '';
+    width: 0.875rem;
+    height: 0.875rem;
+    background-color: var(--text-on-action);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3L13 4.5'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    transform: scale(0);
+    transition: transform 300ms var(--ease-base);
+  }
+  .ui-radio::before {
+    content: '';
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--radius-full);
+    background-color: var(--border-action-primary);
+    transform: scale(0);
+    transition: transform 300ms var(--ease-base);
+  }
+  .ui-checkbox:hover:not(:disabled),
+  .ui-radio:hover:not(:disabled) {
+    background-color: var(--surface-primary-hover);
+  }
+  /* Viền dùng border-action-primary (đạt 3:1 trên mọi nền), nền tô giữ action-primary. */
+  .ui-checkbox:checked {
+    background-color: var(--action-primary);
+    border-color: var(--border-action-primary);
+  }
+  .ui-checkbox:checked:hover:not(:disabled) {
+    background-color: var(--action-primary-hover);
+    border-color: var(--action-primary-hover);
+  }
+  .ui-radio:checked {
+    border-color: var(--border-action-primary);
+  }
+  .ui-checkbox:checked::before,
+  .ui-radio:checked::before {
+    transform: scale(1);
+  }
+  .ui-checkbox:disabled,
+  .ui-radio:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-primary-disabled);
+    background-color: var(--surface-secondary);
+  }
+  .ui-checkbox:checked:disabled {
+    background-color: var(--action-primary-disabled);
+    border-color: var(--action-primary-disabled);
+  }
+  .ui-radio:checked:disabled::before {
+    background-color: var(--action-primary-disabled);
+  }
+  .ui-checkbox[aria-invalid='true'],
+  .ui-radio[aria-invalid='true'] {
+    border-color: var(--border-error);
+  }
+
+  .ui-switch {
+    appearance: none;
+    flex-shrink: 0;
+    position: relative;
+    width: 2.75rem;
+    height: 1.5rem;
+    border: 1px solid var(--border-action-secondary);
+    border-radius: var(--radius-full);
+    background-color: var(--surface-secondary);
+    cursor: pointer;
+    transition:
+      background-color 300ms var(--ease-base),
+      border-color 300ms var(--ease-base);
+  }
+  .ui-switch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: var(--spacing-25);
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: var(--radius-full);
+    background-color: var(--icon-subtle);
+    transform: translateY(-50%);
+    transition:
+      transform 300ms var(--ease-base),
+      background-color 300ms var(--ease-base);
+  }
+  .ui-switch:checked {
+    background-color: var(--action-primary);
+    border-color: var(--border-action-primary);
+  }
+  .ui-switch:checked::before {
+    background-color: var(--surface-primary);
+    transform: translate(1.25rem, -50%);
+  }
+  .ui-switch:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-primary-disabled);
+  }
+  .ui-switch:disabled::before {
+    background-color: var(--icon-disabled);
+  }
+  .ui-switch:checked:disabled {
+    background-color: var(--action-primary-disabled);
+    border-color: var(--action-primary-disabled);
+  }
+
+  /* Thanh trượt (chọn bước, tốc độ): màu theo token, vùng bấm 44px. */
+  .ui-range {
+    accent-color: var(--action-primary);
+    min-height: var(--spacing-touch);
+    cursor: pointer;
+  }
+
+  /* Trạng thái ép để trưng bày ở /thiet-ke. */
+  .ui-force-hover {
+    background-color: var(--surface-primary-hover);
+  }
+
+  /* Màu token code (Prism và giả mã). Mọi màu đã kiểm tương phản trên nền khối code. */
+  .ui-code .tok-keyword,
+  .ui-code .tok-builtin,
+  .ui-code .tok-boolean,
+  .ui-code .tok-important {
+    color: var(--text-info);
+  }
+  .ui-code .tok-string,
+  .ui-code .tok-char,
+  .ui-code .tok-triple-quoted-string {
+    color: var(--text-success);
+  }
+  .ui-code .tok-number,
+  .ui-code .tok-decorator,
+  .ui-code .tok-annotation {
+    color: var(--text-warning);
+  }
+  .ui-code .tok-comment {
+    color: var(--text-tertiary);
+  }
+  .ui-code .tok-operator,
+  .ui-code .tok-punctuation {
+    color: var(--text-secondary);
+  }
+  .ui-code .tok-function,
+  .ui-code .tok-class-name {
+    color: var(--text-primary);
+  }
+
+  /* Accordion trên <details>: ẩn tam giác mặc định. */
+  .ui-accordion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Dialog trên <dialog> gốc: focus trap, Escape, trả focus đều do trình duyệt lo. */
+  .ui-dialog::backdrop {
+    background-color: var(--overlay-lg);
+  }
+  .ui-dialog[open] {
+    animation: var(--animate-enter);
+  }
+
+  /* Tooltip: hiện khi di chuột hoặc focus; Escape ẩn (WCAG 1.4.13). */
+  .ui-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + var(--spacing-75));
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, var(--spacing-50));
+    transition:
+      opacity 300ms var(--ease-base),
+      transform 300ms var(--ease-base);
+  }
+  .ui-tooltip-root:hover .ui-tooltip,
+  .ui-tooltip-root:focus-within .ui-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .ui-tooltip-root[data-dismissed='true'] .ui-tooltip {
+    opacity: 0;
+  }
+
+  /* Toast rời đi. */
+  .ui-toast[data-leaving='true'] {
+    opacity: 0;
+    transform: translateY(var(--spacing-200));
+    transition:
+      opacity 300ms var(--ease-base),
+      transform 300ms var(--ease-base);
+  }
+}
+
+@layer base {
+  html:has(.ui-dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* Trang chủ: section hiện lên khi cuộn tới, câu khẩu hiệu sáng dần từng chữ. Lớp js-* chỉ do script
+   gắn vào, nên khi tắt JavaScript hay bật giảm chuyển động, nội dung luôn hiện đầy đủ. */
+@media (prefers-reduced-motion: no-preference) {
+  .js-rise {
+    opacity: 0;
+    transform: translateY(var(--spacing-400));
+    transition:
+      opacity 700ms var(--ease-base),
+      transform 700ms var(--ease-base);
+  }
+  .js-rise.is-in {
+    opacity: 1;
+    transform: none;
+  }
+  .js-reveal .reveal-word {
+    opacity: 0.3;
+    transition: opacity 500ms var(--ease-base);
+  }
+  .js-reveal .reveal-word.is-lit {
+    opacity: 1;
+  }
+}
+
+/* In đề (trang giáo viên): chỉ giữ nội dung đọc, bỏ điều hướng, ô code, nút, tab. */
+@media print {
+  header:has(nav),
+  footer,
+  [data-print-hide],
+  [role='tablist'],
+  button,
+  .ui-toast-region {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  pre,
+  table {
+    break-inside: avoid;
+  }
+}

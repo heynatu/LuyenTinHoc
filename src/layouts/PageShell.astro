@@ -1,0 +1,40 @@
+---
+/** Khung trang phụ: breadcrumb, tiêu đề, đoạn dẫn, nội dung dạng văn bản dài, đường quay lại. */
+import { ArrowLeftIcon } from '@phosphor-icons/react/ssr';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  lead?: string;
+  updated?: string;
+  noindex?: boolean;
+}
+
+const { title, description, lead, updated, noindex } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} noindex={noindex}>
+  <div class="mx-auto w-full max-w-content px-200 pt-600 md:px-400">
+    <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: title }]} />
+
+    <header class="mt-400 flex max-w-hero flex-col gap-200">
+      <h1 class="heading-4 md:heading-3 text-text-primary">{title}</h1>
+      {lead && <p class="body-3 text-text-secondary">{lead}</p>}
+      {updated && <p class="caption-5 text-text-tertiary">Cập nhật lần cuối: {updated}</p>}
+    </header>
+
+    <article class="prose-vi mt-600">
+      <slot />
+    </article>
+
+    <a
+      href="/"
+      class="body-5 mt-700 inline-flex min-h-touch items-center gap-75 text-text-info transition duration-300 ease-base hover:text-text-primary"
+    >
+      <ArrowLeftIcon size={16} aria-hidden="true" />
+      Về trang chủ
+    </a>
+  </div>
+</BaseLayout>

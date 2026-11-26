@@ -1,0 +1,156 @@
+---
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import PythonLab from '../../components/lab/PythonLab.astro';
+import Badge from '../../components/ui/Badge.astro';
+import CodeBlock from '../../components/ui/CodeBlock.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { TRAP_GROUPS, TRAPS, type Trap } from '../../data/traps';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLessons, getProblems, lessonUrl, problemUrl, trapUrl } from '../../lib/content';
+
+export function getStaticPaths() {
+  return TRAPS.map((trap, i) => ({
+    params: { slug: trap.slug },
+    props: { trap, prev: TRAPS[i - 1], next: TRAPS[i + 1] },
+  }));
+}
+
+const { trap, prev, next } = Astro.props as { trap: Trap; prev?: Trap; next?: Trap };
+const problems = (await getProblems()).filter((p) => p.data.traps.includes(trap.slug));
+const lessons = (await getLessons()).filter((l) => l.data.related.traps.includes(trap.slug));
+---
+
+<BaseLayout
+  title={trap.title}
+  description={`${trap.signs} Cách nhận biết, code sai, code đúng và bài luyện liên quan.`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader title={trap.title} crumbs={[{ label: 'Bẫy thường gặp', href: '/bay-thuong-gap' }]}>
+      <div class="flex flex-wrap gap-75">
+        <Badge tone={trap.severity === 'mat-trang' ? 'error' : 'warning'}>
+          {trap.severity === 'mat-trang' ? 'Có thể mất trắng bài' : 'Mất một phần điểm'}
+        </Badge>
+        <Tag>{TRAP_GROUPS[trap.group]}</Tag>
+      </div>
+    </PageHeader>
+
+    <div class="flex max-w-reading flex-col gap-300">
+      <section aria-labelledby="dau-hieu" class="flex flex-col gap-100">
+        <h2 id="dau-hieu" class="heading-6 text-text-primary">
+          Dấu hiệu nhận biết
+        </h2>
+        <p class="body-3 text-text-secondary">{trap.signs}</p>
+      </section>
+      <section aria-labelledby="vi-sao" class="flex flex-col gap-100">
+        <h2 id="vi-sao" class="heading-6 text-text-primary">
+          Vì sao mất điểm và cách tránh
+        </h2>
+        <p class="body-3 text-text-secondary">{trap.explain}</p>
+      </section>
+
+      {trap.wrong && trap.right && (
+        <section aria-labelledby="so-sanh" class="flex flex-col gap-200">
+          <h2 id="so-sanh" class="heading-6 text-text-primary">
+            Code sai và code đúng
+          </h2>
+          <div class="grid grid-cols-1 gap-200 lg:grid-cols-2">
+            <div class="flex min-w-0 flex-col gap-75">
+              <p class="title-4 inline-flex items-center gap-50 text-text-error">
+                <XCircleIcon size={20} aria-hidden="true" />
+                Code sai
+              </p>
+              <CodeBlock code={trap.wrong} lang="python" title="sai.py" />
+            </div>
+            <div class="flex min-w-0 flex-col gap-75">
+              <p class="title-4 inline-flex items-center gap-50 text-text-success">
+                <CheckCircleIcon size={20} aria-hidden="true" />
+                Code đúng
+              </p>
+              <CodeBlock code={trap.right} lang="python" title="dung.py" />
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
+
+    {trap.wrong && (
+      <section aria-labelledby="thu-ngay" class="flex flex-col gap-200">
+        <div class="flex max-w-hero flex-col gap-75">
+          <h2 id="thu-ngay" class="heading-6 text-text-primary">
+            Chạy thử ngay
+          </h2>
+          <p class="body-6 text-text-secondary">
+            Ô code đang chứa code sai. Chạy để thấy lỗi, rồi sửa theo code đúng và chạy lại.
+          </p>
+        </div>
+        <PythonLab
+          id={`bay-${trap.slug}`}
+          storageKey={`bay:${trap.slug}`}
+          initialCode={trap.wrong}
+          initialStdin={trap.stdin ?? ''}
+          templates={false}
+          trace={false}
+        />
+      </section>
+    )}
+
+    {(problems.length > 0 || lessons.length > 0) && (
+      <section aria-labelledby="luyen-them" class="flex flex-col gap-100">
+        <h2 id="luyen-them" class="heading-6 text-text-primary">
+          Luyện thêm
+        </h2>
+        <ul class="flex flex-col gap-50">
+          {problems.map((p) => (
+            <li>
+              <a
+                class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                href={problemUrl(p.id)}
+              >
+                Bài tập: {p.data.title}
+              </a>
+            </li>
+          ))}
+          {lessons.map((l) => (
+            <li>
+              <a
+                class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                href={lessonUrl(l.id)}
+              >
+                Bài học: {l.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <nav aria-label="Bẫy trước và bẫy sau" class="flex flex-wrap justify-between gap-200">
+      {prev ? (
+        <a
+          href={trapUrl(prev.slug)}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          <ArrowLeftIcon size={16} aria-hidden="true" />
+          {prev.title}
+        </a>
+      ) : (
+        <span />
+      )}
+      {next && (
+        <a
+          href={trapUrl(next.slug)}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          {next.title}
+          <ArrowRightIcon size={16} aria-hidden="true" />
+        </a>
+      )}
+    </nav>
+  </div>
+</BaseLayout>

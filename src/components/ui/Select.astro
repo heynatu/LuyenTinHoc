@@ -1,0 +1,69 @@
+---
+/** Danh sách chọn dùng <select> gốc (bàn phím, trình đọc màn hình, điện thoại chạy sẵn). */
+import { CaretDownIcon } from '@phosphor-icons/react/ssr';
+import type { HTMLAttributes } from 'astro/types';
+import { describedBy, resolveFieldState } from './field';
+import FieldShell from './FieldShell.astro';
+import { cx, fieldClasses, type FieldState } from './recipes';
+
+interface Props extends Omit<HTMLAttributes<'select'>, 'id'> {
+  id: string;
+  label: string;
+  options: { value: string; label: string }[];
+  value?: string;
+  hint?: string;
+  error?: string;
+  state?: FieldState;
+}
+
+const {
+  id,
+  label,
+  options,
+  value,
+  hint,
+  error,
+  state,
+  required,
+  disabled,
+  class: className,
+  ...rest
+} = Astro.props;
+const look = resolveFieldState(state, Boolean(disabled));
+const isDisabled = Boolean(disabled) || state === 'disabled';
+---
+
+<FieldShell
+  id={id}
+  label={label}
+  hint={hint}
+  error={error}
+  required={Boolean(required)}
+  disabled={isDisabled}
+>
+  <div class="relative w-full">
+    <select
+      id={id}
+      class={cx(fieldClasses(look), 'appearance-none pr-600', className)}
+      aria-invalid={error ? 'true' : undefined}
+      aria-describedby={describedBy(id, hint, error)}
+      required={required}
+      disabled={isDisabled}
+      {...rest}
+    >
+      {options.map((option) => (
+        <option value={option.value} selected={option.value === value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+    <span
+      class:list={[
+        'pointer-events-none absolute top-1/2 right-200 inline-flex -translate-y-1/2',
+        isDisabled ? 'text-icon-disabled' : 'text-icon-subtle',
+      ]}
+    >
+      <CaretDownIcon size={16} aria-hidden="true" />
+    </span>
+  </div>
+</FieldShell>

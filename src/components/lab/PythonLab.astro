@@ -1,0 +1,261 @@
+---
+/**
+ * Phòng lập trình Python (mục 4.4): ô code, dữ liệu vào, chế độ đọc ghi file như phòng thi,
+ * kết quả có giải thích lỗi tiếng Việt, theo dõi từng dòng. Logic ở src/lib/lab/python-lab.ts.
+ */
+import {
+  ArrowCounterClockwiseIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  DownloadSimpleIcon,
+  FootprintsIcon,
+  LinkIcon,
+  PlayIcon,
+  StopIcon,
+} from '@phosphor-icons/react/ssr';
+import Button from '../ui/Button.astro';
+import Choice from '../ui/Choice.astro';
+import Dialog from '../ui/Dialog.astro';
+import IconButton from '../ui/IconButton.astro';
+import Skeleton from '../ui/Skeleton.astro';
+import TabPanel from '../ui/TabPanel.astro';
+import Tabs from '../ui/Tabs.astro';
+import Textarea from '../ui/Textarea.astro';
+import { fieldClasses } from '../ui/recipes';
+import { LAB_TEMPLATES } from '../../lib/lab/templates';
+
+interface Props {
+  id: string;
+  storageKey?: string;
+  initialCode?: string;
+  initialStdin?: string;
+  /** Tên file của bài (bật sẵn chế độ đọc ghi file). */
+  files?: { input: string; output: string };
+  templates?: boolean;
+  share?: boolean;
+  trace?: boolean;
+  editorLabel?: string;
+}
+
+const {
+  id,
+  storageKey,
+  initialCode,
+  initialStdin = '',
+  files,
+  templates = true,
+  share = false,
+  trace = true,
+  editorLabel,
+} = Astro.props;
+const smallField = fieldClasses('interactive');
+---
+
+<section
+  class="flex flex-col gap-200"
+  data-python-lab={id}
+  data-storage-key={storageKey}
+  data-initial-code={initialCode}
+  data-share={share ? 'true' : undefined}
+  data-editor-label={editorLabel}
+  aria-label="Phòng lập trình Python"
+>
+  <div class="flex flex-wrap items-center gap-100">
+    <Button data-lab-run>
+      <PlayIcon size={20} aria-hidden="true" />
+      Chạy chương trình
+    </Button>
+    <Button variant="secondary" data-lab-stop disabled>
+      <StopIcon size={20} aria-hidden="true" />
+      Dừng
+    </Button>
+    {trace && (
+      <Button variant="secondary" data-lab-trace>
+        <FootprintsIcon size={20} aria-hidden="true" />
+        Theo dõi từng dòng
+      </Button>
+    )}
+    {templates && (
+      <div class="relative">
+        <label for={`${id}-template`} class="sr-only">
+          Chọn mẫu code
+        </label>
+        <select id={`${id}-template`} class:list={[smallField, 'w-auto pr-300']} data-lab-template>
+          <option value="">Chọn mẫu code</option>
+          {LAB_TEMPLATES.map((t) => (
+            <option value={t.id}>{t.label}</option>
+          ))}
+        </select>
+      </div>
+    )}
+    <div class="flex items-center gap-25">
+      {share && (
+        <IconButton label="Sao chép đường dẫn chia sẻ code" data-lab-share>
+          <LinkIcon size={20} aria-hidden="true" />
+        </IconButton>
+      )}
+      <IconButton label="Tải code về máy (file .py)" data-lab-download>
+        <DownloadSimpleIcon size={20} aria-hidden="true" />
+      </IconButton>
+      <IconButton label="Đặt lại code ban đầu" data-dialog-open={`${id}-reset`}>
+        <ArrowCounterClockwiseIcon size={20} aria-hidden="true" />
+      </IconButton>
+    </div>
+  </div>
+  <p class="caption-2 text-text-tertiary" data-lab-status aria-live="polite">
+    Python sẽ được tải khi bạn bắt đầu gõ hoặc bấm Chạy (lần đầu khoảng 13 MB).
+  </p>
+
+  <div class="grid grid-cols-1 gap-300 lg:grid-cols-2">
+    <div class="flex min-w-0 flex-col gap-75">
+      <p class="title-4 text-text-primary" id={`${id}-editor-label`}>
+        Code Python
+      </p>
+      <div
+        class="h-editor overflow-hidden rounded-12 border border-border-action-secondary"
+        data-lab-editor
+      >
+        <div class="flex flex-col gap-100 p-200" data-lab-editor-skeleton aria-hidden="true">
+          <Skeleton width="3/4" />
+          <Skeleton width="1/2" />
+          <Skeleton width="3/4" />
+          <Skeleton width="1/3" />
+        </div>
+      </div>
+      <p class="caption-2 text-text-tertiary">
+        Ctrl+Enter để chạy. Trong ô code, Tab để thụt lề; bấm Esc rồi Tab để rời ô code.
+      </p>
+    </div>
+
+    <div class="flex min-w-0 flex-col gap-200">
+      <Choice
+        id={`${id}-filemode`}
+        kind="switch"
+        label="Đọc ghi file như phòng thi"
+        description="Dữ liệu vào được ghi thành file; kết quả đọc từ file ra."
+        data-lab-filemode
+        checked={Boolean(files)}
+      />
+      <div class="grid grid-cols-2 gap-100" data-lab-file-fields hidden={!files}>
+        <label class="flex flex-col gap-50">
+          <span class="title-5 text-text-secondary">File dữ liệu vào</span>
+          <input
+            class={smallField}
+            value={files?.input ?? 'BAI1.INP'}
+            data-lab-infile
+            spellcheck="false"
+          />
+        </label>
+        <label class="flex flex-col gap-50">
+          <span class="title-5 text-text-secondary">File kết quả</span>
+          <input
+            class={smallField}
+            value={files?.output ?? 'BAI1.OUT'}
+            data-lab-outfile
+            spellcheck="false"
+          />
+        </label>
+      </div>
+      <Textarea id={`${id}-stdin`} label="Dữ liệu vào" mono rows={4} data-lab-stdin>
+        {initialStdin}
+      </Textarea>
+
+      <Tabs
+        id={`${id}-out`}
+        label="Kết quả chạy"
+        tabs={[
+          { id: 'ket-qua', label: 'Kết quả' },
+          ...(trace ? [{ id: 'theo-doi', label: 'Theo dõi từng dòng' }] : []),
+        ]}
+      >
+        <TabPanel tabs={`${id}-out`} id="ket-qua" active>
+          <div class="flex flex-col gap-100">
+            <pre
+              class="body-6 max-h-editor min-h-900 overflow-auto rounded-12 border border-border-primary bg-surface-primary-subtle p-200 font-mono whitespace-pre-wrap break-words text-text-primary"
+              data-lab-output
+              aria-live="polite"
+              aria-label="Kết quả in ra màn hình"
+            ><span class="caption-2 text-text-tertiary">Bấm Chạy chương trình để xem kết quả.</span></pre>
+            <div
+              data-lab-file-output
+              hidden
+              class="flex flex-col gap-50 rounded-12 border border-border-primary p-200"
+            ></div>
+            <div data-lab-error hidden></div>
+          </div>
+        </TabPanel>
+        {trace && (
+          <TabPanel tabs={`${id}-out`} id="theo-doi">
+            <div data-lab-trace-panel tabindex="-1" class="flex flex-col gap-200 outline-none">
+              <p data-lab-trace-empty class="body-6 text-text-tertiary">
+                Bấm Theo dõi từng dòng để xem chương trình chạy qua từng dòng và giá trị các biến
+                (tối đa 1000 bước, phù hợp chương trình ngắn).
+              </p>
+              <div data-lab-trace-body hidden class="flex flex-col gap-200">
+                <div class="flex items-center gap-100">
+                  <IconButton label="Bước trước" variant="secondary" data-lab-trace-prev>
+                    <CaretLeftIcon size={20} aria-hidden="true" />
+                  </IconButton>
+                  <label class="flex flex-1 flex-col gap-25">
+                    <span class="sr-only">Chọn bước</span>
+                    <input
+                      type="range"
+                      min="0"
+                      value="0"
+                      class="ui-range w-full"
+                      data-lab-trace-range
+                    />
+                  </label>
+                  <IconButton label="Bước sau" variant="secondary" data-lab-trace-next>
+                    <CaretRightIcon size={20} aria-hidden="true" />
+                  </IconButton>
+                </div>
+                <p class="body-5 text-text-primary" data-lab-trace-label aria-live="polite" />
+                <pre
+                  class="ui-code body-6 max-h-900 overflow-auto rounded-12 border border-border-primary bg-surface-primary-subtle py-100 font-mono text-text-primary"
+                  data-lab-trace-code
+                  aria-label="Code, dòng đang chạy được tô nền"
+                />
+                <div class="flex flex-col gap-50">
+                  <p class="title-4 text-text-primary">Biến</p>
+                  <div data-lab-trace-vars class="flex flex-col" />
+                </div>
+                <div class="flex flex-col gap-50">
+                  <p class="title-4 text-text-primary">Đã in ra</p>
+                  <pre
+                    class="body-6 rounded-8 bg-surface-secondary p-100 font-mono whitespace-pre-wrap text-text-primary"
+                    data-lab-trace-out
+                  />
+                </div>
+              </div>
+            </div>
+          </TabPanel>
+        )}
+      </Tabs>
+    </div>
+  </div>
+
+  <Dialog
+    id={`${id}-reset`}
+    title="Đặt lại code ban đầu?"
+    description="Code bạn đang viết sẽ bị thay bằng code ban đầu. Không hoàn tác được."
+  >
+    <p>Nếu muốn giữ code hiện tại, hãy tải về máy trước.</p>
+    <Fragment slot="footer">
+      <Button variant="secondary" data-dialog-close>
+        Giữ code
+      </Button>
+      <Button variant="error" data-dialog-close data-lab-reset-confirm>
+        Đặt lại
+      </Button>
+    </Fragment>
+  </Dialog>
+</section>
+
+<script>
+  import { initPythonLab } from '../../lib/lab/python-lab';
+
+  document
+    .querySelectorAll<HTMLElement>('[data-python-lab]')
+    .forEach((root) => initPythonLab(root));
+</script>

@@ -1,0 +1,35 @@
+---
+/** Nhóm Radio hoặc Checkbox có tiêu đề nhóm (fieldset, legend) và lỗi chung. */
+import { WarningCircleIcon } from '@phosphor-icons/react/ssr';
+
+interface Props {
+  legend: string;
+  error?: string;
+  hint?: string;
+  id: string;
+}
+
+const { legend, error, hint, id } = Astro.props;
+---
+
+<fieldset
+  class="flex flex-col gap-25"
+  aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+>
+  <legend class="title-4 pb-50 text-text-primary">{legend}</legend>
+  <slot />
+  {error ? (
+    <p id={`${id}-error`} class="caption-2 flex items-start gap-50 text-text-error">
+      <span class="inline-flex shrink-0 pt-25">
+        <WarningCircleIcon size={16} aria-hidden="true" />
+      </span>
+      {error}
+    </p>
+  ) : (
+    hint && (
+      <p id={`${id}-hint`} class="caption-2 text-text-tertiary">
+        {hint}
+      </p>
+    )
+  )}
+</fieldset>

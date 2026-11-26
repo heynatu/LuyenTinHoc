@@ -1,0 +1,354 @@
+---
+import {
+  DownloadSimpleIcon,
+  MedalIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from '@phosphor-icons/react/ssr';
+import PageHeader from '../components/layout/PageHeader.astro';
+import Button from '../components/ui/Button.astro';
+import Callout from '../components/ui/Callout.astro';
+import Dialog from '../components/ui/Dialog.astro';
+import StateView from '../components/ui/StateView.astro';
+import { MOCK_EXAMS } from '../data/mock-exams';
+import { PUZZLES } from '../data/puzzles';
+import { SQL_EXERCISES } from '../data/sql';
+import { TOPICS } from '../data/taxonomy';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLessons, getProblems } from '../lib/content';
+import { LEVELS as DIFFICULTY } from '../lib/ui-logic';
+
+const lessons = await getLessons();
+const problems = await getProblems();
+const meta = JSON.stringify({
+  lessons: lessons.length,
+  puzzles: PUZZLES.length,
+  sql: SQL_EXERCISES.length,
+  problems: problems.map((p) => ({
+    id: p.id,
+    title: p.data.title,
+    topics: p.data.topics,
+    difficulty: p.data.difficulty,
+  })),
+  topics: TOPICS,
+  difficulty: DIFFICULTY,
+  exams: Object.fromEntries(MOCK_EXAMS.map((e) => [e.id, e.title])),
+});
+---
+
+<BaseLayout
+  title="Tiến độ của bạn"
+  description="Bài đã học, bài đã giải, chuỗi ngày học, lịch sử thi thử và huy hiệu. Dữ liệu chỉ nằm trong trình duyệt của bạn."
+  noindex
+>
+  <div
+    class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400"
+    data-progress-page={meta}
+  >
+    <PageHeader
+      title="Tiến độ của bạn"
+      crumbs={[]}
+      lead="Tiến độ chỉ được lưu trong trình duyệt này, không gửi đi đâu. Đổi máy hoặc xóa dữ liệu trình duyệt thì mất, nên hãy xuất file để giữ lại."
+    />
+
+    <div data-progress-empty hidden>
+      <StateView
+        kind="empty"
+        title="Bắt đầu từ đây"
+        description="Bạn chưa học bài nào trên trình duyệt này. Chọn một bài học theo cấp, giải một câu đố, hoặc thử chấm một bài luyện đề. Tiến độ sẽ hiện ở đây."
+        actionLabel="Chọn bài học đầu tiên"
+        actionHref="/hoc"
+      />
+    </div>
+
+    <div data-progress-body class="flex flex-col gap-500">
+      <section aria-labelledby="tong-quan" class="flex flex-col gap-200">
+        <h2 id="tong-quan" class="heading-5 text-text-primary">
+          Tổng quan
+        </h2>
+        <dl class="grid grid-cols-2 gap-200 md:grid-cols-3 xl:grid-cols-6" data-progress-stats></dl>
+      </section>
+
+      <section aria-labelledby="huy-hieu" class="flex flex-col gap-200">
+        <h2 id="huy-hieu" class="heading-5 inline-flex items-center gap-75 text-text-primary">
+          <MedalIcon size={24} aria-hidden="true" />
+          Huy hiệu
+        </h2>
+        <ul
+          class="grid grid-cols-1 gap-100 sm:grid-cols-2 lg:grid-cols-3"
+          data-progress-badges
+        ></ul>
+      </section>
+
+      <section aria-labelledby="theo-chu-de" class="flex flex-col gap-200">
+        <h2 id="theo-chu-de" class="heading-5 text-text-primary">
+          Bài luyện đề đạt 100%
+        </h2>
+        <div class="grid grid-cols-1 gap-300 lg:grid-cols-2">
+          <div class="flex flex-col gap-100">
+            <h3 class="title-3 text-text-primary">Theo cấp độ</h3>
+            <ul class="flex flex-col gap-50" data-progress-difficulty></ul>
+          </div>
+          <div class="flex flex-col gap-100">
+            <h3 class="title-3 text-text-primary">Theo chủ đề</h3>
+            <ul class="flex flex-col gap-50" data-progress-topics></ul>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="thi-thu" class="flex flex-col gap-200">
+        <h2 id="thi-thu" class="heading-5 text-text-primary">
+          Lịch sử thi thử
+        </h2>
+        <p class="body-6 text-text-secondary" data-progress-exams-empty>
+          Chưa có lần thi thử nào.{' '}
+          <a
+            class="text-text-info underline underline-offset-4 hover:text-text-primary"
+            href="/thi-thu"
+          >
+            Chọn một đề thi thử
+          </a>
+          .
+        </p>
+        <ul class="flex flex-col gap-50" data-progress-exams></ul>
+      </section>
+    </div>
+
+    <section
+      aria-labelledby="du-lieu"
+      class="flex flex-col gap-200 rounded-16 border border-border-primary p-300"
+    >
+      <h2 id="du-lieu" class="heading-6 text-text-primary">
+        Sao lưu và xóa dữ liệu
+      </h2>
+      <p class="body-6 text-text-secondary">
+        File xuất ra là JSON, chỉ chứa tiến độ trên trang này, không có thông tin cá nhân.
+      </p>
+      <div class="flex flex-wrap gap-100">
+        <Button variant="secondary" data-progress-export>
+          <DownloadSimpleIcon size={20} aria-hidden="true" />
+          Xuất tiến độ
+        </Button>
+        <label class="relative inline-flex">
+          <input
+            type="file"
+            accept="application/json,.json"
+            class="peer absolute inset-0 cursor-pointer opacity-0"
+            data-progress-import
+            aria-label="Nhập tiến độ từ file JSON"
+          />
+          <span class="button-md inline-flex min-h-touch items-center gap-75 rounded-8 border border-border-action-secondary px-100 py-75 text-text-primary transition duration-300 ease-base peer-hover:bg-surface-primary-hover peer-focus-visible:ring-2 peer-focus-visible:ring-border-action-primary">
+            <UploadSimpleIcon size={20} aria-hidden="true" />
+            Nhập tiến độ
+          </span>
+        </label>
+        <Button variant="error" data-dialog-open="xoa-tien-do">
+          <TrashIcon size={20} aria-hidden="true" />
+          Xóa toàn bộ tiến độ
+        </Button>
+      </div>
+      <p
+        class="body-6 text-text-secondary"
+        data-progress-message
+        role="status"
+        aria-live="polite"
+      ></p>
+    </section>
+
+    <Callout kind="luu-y" title="Không có bảng xếp hạng">
+      <p>
+        Bảng xếp hạng cần máy chủ và dữ liệu cá nhân. Trang này không có cả hai, nên chỉ bạn thấy
+        tiến độ của mình.
+      </p>
+    </Callout>
+  </div>
+
+  <Dialog
+    id="xoa-tien-do"
+    title="Xóa toàn bộ tiến độ?"
+    description="Bài đã học, điểm luyện đề, lịch sử thi thử và huy hiệu trên trình duyệt này sẽ bị xóa. Không hoàn tác được."
+  >
+    <p>Nếu muốn giữ lại, hãy bấm Xuất tiến độ trước.</p>
+    <Fragment slot="footer">
+      <Button variant="secondary" data-dialog-close>
+        Giữ lại
+      </Button>
+      <Button variant="error" data-dialog-close data-progress-clear>
+        Xóa
+      </Button>
+    </Fragment>
+  </Dialog>
+</BaseLayout>
+
+<script>
+  import {
+    badges,
+    clearProgress,
+    exportProgress,
+    importProgress,
+    loadProgress,
+    streak,
+  } from '../lib/progress';
+  import { showToast } from '../lib/toast';
+
+  type Meta = {
+    lessons: number;
+    puzzles: number;
+    sql: number;
+    problems: { id: string; title: string; topics: string[]; difficulty: number }[];
+    topics: Record<string, string>;
+    difficulty: Record<string, string>;
+    exams: Record<string, string>;
+  };
+
+  const root = document.querySelector<HTMLElement>('[data-progress-page]');
+  if (root) {
+    const meta = JSON.parse(root.dataset.progressPage ?? '{}') as Meta;
+    const $ = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const message = $('[data-progress-message]');
+    const el = <K extends keyof HTMLElementTagNameMap>(
+      tag: K,
+      className: string,
+      text?: string,
+    ) => {
+      const n = document.createElement(tag);
+      n.className = className;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+
+    function paint() {
+      const p = loadProgress();
+      const solved = new Set(
+        Object.entries(p.problems)
+          .filter(([, v]) => v.best >= 100)
+          .map(([id]) => id),
+      );
+      const tried = Object.keys(p.problems).length;
+      const isEmpty =
+        Object.keys(p.lessons).length +
+          tried +
+          Object.keys(p.puzzles).length +
+          Object.keys(p.sql).length +
+          p.exams.length +
+          Object.keys(p.quizzes).length ===
+        0;
+      $('[data-progress-empty]').hidden = !isEmpty;
+      $('[data-progress-body]').hidden = isEmpty;
+
+      const stats: [string, string][] = [
+        ['Bài học đã học', `${Object.keys(p.lessons).length}/${meta.lessons}`],
+        ['Bài luyện đề đạt 100%', `${solved.size}/${meta.problems.length}`],
+        ['Bài đã chấm thử', String(tried)],
+        ['Câu đố đã giải', `${Object.keys(p.puzzles).length}/${meta.puzzles}`],
+        ['Bài SQL đúng', `${Object.keys(p.sql).length}/${meta.sql}`],
+        ['Chuỗi ngày học', `${streak(p.days)} ngày`],
+      ];
+      const dl = $('[data-progress-stats]');
+      dl.replaceChildren(
+        ...stats.map(([label, value]) => {
+          const box = el(
+            'div',
+            'flex flex-col gap-25 rounded-12 border border-border-primary p-200',
+          );
+          box.append(
+            el('dt', 'caption-4 text-text-tertiary', label),
+            el('dd', 'title-1 text-text-primary', value),
+          );
+          return box;
+        }),
+      );
+
+      $('[data-progress-badges]').replaceChildren(
+        ...badges(p).map((b) => {
+          const li = el(
+            'li',
+            `flex flex-col gap-25 rounded-12 border p-200 ${b.earned ? 'border-border-action-primary bg-surface-primary' : 'border-border-primary bg-surface-primary-subtle'}`,
+          );
+          li.append(
+            el(
+              'span',
+              `caption-3 ${b.earned ? 'text-text-success' : 'text-text-tertiary'}`,
+              b.earned ? 'Đã đạt' : 'Chưa đạt',
+            ),
+            el('span', 'title-3 text-text-primary', b.title),
+            el('span', 'body-6 text-text-secondary', b.detail),
+          );
+          return li;
+        }),
+      );
+
+      const row = (label: string, done: number, total: number) => {
+        const li = el(
+          'li',
+          'flex items-center justify-between gap-200 rounded-8 px-100 py-75 even:bg-surface-primary-subtle',
+        );
+        li.append(
+          el('span', 'body-6 text-text-secondary', label),
+          el('span', 'body-5 text-text-primary', `${done}/${total}`),
+        );
+        return li;
+      };
+      $('[data-progress-difficulty]').replaceChildren(
+        ...Object.entries(meta.difficulty).map(([d, label]) => {
+          const list = meta.problems.filter((x) => String(x.difficulty) === d);
+          return row(
+            `Cấp ${d}: ${label}`,
+            list.filter((x) => solved.has(x.id)).length,
+            list.length,
+          );
+        }),
+      );
+      const topicIds = [...new Set(meta.problems.flatMap((x) => x.topics))];
+      $('[data-progress-topics]').replaceChildren(
+        ...topicIds.map((t) => {
+          const list = meta.problems.filter((x) => x.topics.includes(t));
+          return row(meta.topics[t] ?? t, list.filter((x) => solved.has(x.id)).length, list.length);
+        }),
+      );
+
+      $('[data-progress-exams-empty]').hidden = p.exams.length > 0;
+      $('[data-progress-exams]').replaceChildren(
+        ...[...p.exams]
+          .reverse()
+          .slice(0, 30)
+          .map((e) => {
+            const date = new Date(e.at);
+            return row(
+              `${meta.exams[e.id] ?? e.id}, ${date.toLocaleDateString('vi-VN')}`,
+              e.score,
+              e.max,
+            );
+          }),
+      );
+    }
+
+    $('[data-progress-export]').addEventListener('click', () => {
+      const blob = new Blob([exportProgress()], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `tien-do-tu-duy-tin-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      message.textContent = 'Đã tạo file tiến độ. Kiểm tra thư mục tải về của trình duyệt.';
+    });
+    root
+      .querySelector<HTMLInputElement>('[data-progress-import]')
+      ?.addEventListener('change', async (event) => {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        const error = importProgress(await file.text());
+        message.textContent = error ?? 'Đã nhập tiến độ từ file.';
+        if (!error) showToast({ tone: 'success', message: 'Đã nhập tiến độ từ file.' });
+        input.value = '';
+        paint();
+      });
+    document.querySelector('[data-progress-clear]')?.addEventListener('click', () => {
+      clearProgress();
+      message.textContent = 'Đã xóa toàn bộ tiến độ trên trình duyệt này.';
+      paint();
+    });
+    paint();
+  }
+</script>

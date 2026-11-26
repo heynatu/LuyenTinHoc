@@ -1,0 +1,51 @@
+---
+/**
+ * Ô nhập một dòng: Default, Hover, Focus, Filled, Error, Disabled.
+ * Lỗi đặt aria-invalid và nối thông báo qua aria-describedby.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { describedBy, resolveFieldState } from './field';
+import FieldShell from './FieldShell.astro';
+import { cx, fieldClasses, type FieldState } from './recipes';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id'> {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  state?: FieldState;
+}
+
+const {
+  id,
+  label,
+  hint,
+  error,
+  state,
+  required,
+  disabled,
+  class: className,
+  ...rest
+} = Astro.props;
+const look = resolveFieldState(state, Boolean(disabled));
+const isDisabled = Boolean(disabled) || state === 'disabled';
+---
+
+<FieldShell
+  id={id}
+  label={label}
+  hint={hint}
+  error={error}
+  required={Boolean(required)}
+  disabled={isDisabled}
+>
+  <input
+    id={id}
+    class={cx(fieldClasses(look), className)}
+    aria-invalid={error ? 'true' : undefined}
+    aria-describedby={describedBy(id, hint, error)}
+    required={required}
+    disabled={isDisabled}
+    {...rest}
+  />
+</FieldShell>

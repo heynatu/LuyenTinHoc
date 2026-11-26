@@ -1,0 +1,41 @@
+# Phụ thuộc và bản build
+node_modules/
+dist/
+.astro/
+.vercel/
+
+# Biến môi trường (dự án không cần, chặn để tránh lộ bí mật)
+.env
+.env.*
+!.env.example
+
+# Sinh lúc build từ node_modules (scripts/copy-wasm.mjs)
+public/pyodide/
+public/sqljs/
+
+# Đề gốc người dùng cung cấp (bản quyền, dung lượng)
+source-materials/
+!source-materials/README.md
+
+# Kết quả kiểm thử
+test-results/
+playwright-report/
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+.ruff_cache/
+.venv/
+
+# Hệ điều hành, trình soạn thảo
+.DS_Store
+Thumbs.db
+.idea/
+*.log
+
+# Sinh lúc build (scripts/copy-wasm.mjs)
+src/generated/
+
+# Trang demo chụp màn hình (chỉ để xem trước)
+demo/

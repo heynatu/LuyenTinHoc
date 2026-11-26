@@ -1,0 +1,28 @@
+---
+/** Code Python, SQL hoặc văn bản thuần, tô màu lúc build (không gửi Prism xuống trình duyệt). */
+import { highlightLines, normalizeCode, type CodeLang } from '../../lib/highlight';
+import CodeFrame from './CodeFrame.astro';
+
+interface Props {
+  code: string;
+  lang?: CodeLang;
+  title?: string;
+  highlight?: number[];
+  lineNumbers?: boolean;
+  copy?: boolean;
+}
+
+const { code, lang = 'python', title, highlight, lineNumbers, copy } = Astro.props;
+const LANG_LABEL: Record<CodeLang, string> = { python: 'Python', sql: 'SQL', text: 'Văn bản' };
+---
+
+<CodeFrame
+  lines={highlightLines(code, lang)}
+  raw={normalizeCode(code)}
+  title={title}
+  badge={LANG_LABEL[lang]}
+  highlight={highlight}
+  lineNumbers={lineNumbers}
+  copy={copy}
+  label={title ? `Code ${title}` : `Code ${LANG_LABEL[lang]}`}
+/>

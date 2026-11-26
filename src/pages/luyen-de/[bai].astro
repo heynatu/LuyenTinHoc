@@ -1,0 +1,363 @@
+---
+import { getEntry, render } from 'astro:content';
+import {
+  ClockIcon,
+  FileTextIcon,
+  LockSimpleIcon,
+  PrinterIcon,
+  SealCheckIcon,
+} from '@phosphor-icons/react/ssr';
+import JudgePanel from '../../components/judge/JudgePanel.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import PythonLab from '../../components/lab/PythonLab.astro';
+import Accordion from '../../components/ui/Accordion.astro';
+import Button from '../../components/ui/Button.astro';
+import Callout from '../../components/ui/Callout.astro';
+import CodeBlock from '../../components/ui/CodeBlock.astro';
+import LevelBadge from '../../components/ui/LevelBadge.astro';
+import SourceBadge from '../../components/ui/SourceBadge.astro';
+import TabPanel from '../../components/ui/TabPanel.astro';
+import Tabs from '../../components/ui/Tabs.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { CONTEST_LABEL } from '../../data/contests';
+import { TRAPS } from '../../data/traps';
+import { TOPICS } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  assertRefs,
+  getLessons,
+  getProblems,
+  lessonUrl,
+  trapUrl,
+  type Problem,
+} from '../../lib/content';
+import { samplesOf, solutionOf, starterCode, verifyOf } from '../../lib/problems';
+import { getAlgorithm } from '../../lib/viz/registry';
+
+export async function getStaticPaths() {
+  const problems = await getProblems();
+  return problems.map((problem) => ({ params: { bai: problem.id }, props: { problem } }));
+}
+
+const { problem } = Astro.props as { problem: Problem };
+const { data } = problem;
+await assertRefs(`Bài ${problem.id}`, { algorithms: data.algorithms, traps: data.traps });
+const { Content } = await render(problem);
+const editorial = await getEntry('editorials', problem.id);
+if (!editorial) throw new Error(`Bài ${problem.id} thiếu editorial.md`);
+const { Content: Editorial } = await render(editorial);
+const verify = verifyOf(problem.id)!;
+const samples = samplesOf(problem.id);
+const solution = solutionOf(problem.id)!;
+const partial = editorial.data.partial.map((p) => ({
+  ...p,
+  code: solutionOf(problem.id, p.file) ?? '',
+}));
+const traps = TRAPS.filter((t) => data.traps.includes(t.slug));
+const algorithms = data.algorithms.map((s) => getAlgorithm(s)!);
+const lessons = (await getLessons()).filter((l) => l.data.related.problems.includes(problem.id));
+const labId = `bai-${problem.id}`;
+const files =
+  data.io.mode === 'file' ? { input: data.io.input, output: data.io.output } : undefined;
+const ioText =
+  data.io.mode === 'file'
+    ? `Chương trình ${data.io.program} đọc dữ liệu từ file ${data.io.input}, ghi kết quả ra file ${data.io.output}.`
+    : `Chương trình ${data.io.program} đọc dữ liệu từ bàn phím (vào chuẩn) và in kết quả ra màn hình (ra chuẩn).`;
+const sourceText =
+  data.source.kind === 'original'
+    ? data.source.note
+    : `${data.source.kind === 'official' ? 'Đề chính thức' : 'Phỏng theo đề'} ${CONTEST_LABEL[data.source.contest]} năm học ${data.source.year}${data.source.round ? `, ${data.source.round}` : ''}. Nguồn: ${data.source.reference}.`;
+---
+
+<BaseLayout title={data.title} description={data.summary}>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title={data.title}
+      lead={data.summary}
+      crumbs={[{ label: 'Luyện đề', href: '/luyen-de' }]}
+    >
+      <div class="flex flex-wrap gap-75">
+        <LevelBadge level={data.difficulty} />
+        <SourceBadge kind={data.source.kind} />
+        <Tag>{CONTEST_LABEL[data.source.contest]}</Tag>
+        <Tag>Lớp {data.grades.join(', ')}</Tag>
+        {data.topics.map((t) => (
+          <Tag>{TOPICS[t]}</Tag>
+        ))}
+      </div>
+      <dl class="grid grid-cols-1 gap-100 rounded-12 border border-border-primary p-200 sm:grid-cols-2">
+        <div class="flex items-start gap-75">
+          <span class="inline-flex pt-25 text-icon-subtle">
+            <ClockIcon size={16} aria-hidden="true" />
+          </span>
+          <div>
+            <dt class="caption-4 text-text-tertiary">Giới hạn</dt>
+            <dd class="body-5 text-text-primary">
+              {data.limits.timeMs / 1000} giây, {data.limits.memoryMb} MB
+            </dd>
+          </div>
+        </div>
+        <div class="flex items-start gap-75">
+          <span class="inline-flex pt-25 text-icon-subtle">
+            <FileTextIcon size={16} aria-hidden="true" />
+          </span>
+          <div>
+            <dt class="caption-4 text-text-tertiary">Tên file</dt>
+            <dd class="body-5 font-mono text-text-primary">
+              {data.io.program}
+              {data.io.mode === 'file'
+                ? `, ${data.io.input}, ${data.io.output}`
+                : ' (vào ra chuẩn)'}
+            </dd>
+          </div>
+        </div>
+      </dl>
+    </PageHeader>
+
+    <section aria-label="Đề bài và lời giải" class="flex max-w-reading flex-col gap-300">
+      <Tabs
+        id="bai"
+        label="Nội dung bài"
+        tabs={[
+          { id: 'de-bai', label: 'Đề bài' },
+          { id: 'goi-y', label: 'Gợi ý' },
+          { id: 'loi-giai', label: 'Lời giải' },
+          { id: 'bay', label: 'Bẫy cần tránh' },
+        ]}
+      >
+        <TabPanel tabs="bai" id="de-bai" active>
+          <div class="flex flex-col gap-400">
+            <article class="prose-vi">
+              <Content />
+            </article>
+            <p class="body-6 rounded-12 bg-surface-primary-subtle p-200 text-text-secondary">
+              {ioText}
+            </p>
+
+            <section aria-labelledby="rang-buoc" class="flex flex-col gap-100">
+              <h2 id="rang-buoc" class="heading-6 text-text-primary">
+                Ràng buộc và điểm
+              </h2>
+              <ul class="flex flex-col gap-50">
+                {data.subtasks.map((s, i) => (
+                  <li class="body-6 text-text-secondary">
+                    <span class="body-5 text-text-primary">
+                      Nhóm {i + 1} ({s.percent}% số test):
+                    </span>{' '}
+                    {s.constraint}
+                  </li>
+                ))}
+              </ul>
+              <p class="caption-2 text-text-tertiary">
+                Bài {data.scoring.points} điểm, chấm theo tỉ lệ test đúng.
+              </p>
+            </section>
+
+            <section aria-labelledby="vi-du" class="flex flex-col gap-200">
+              <h2 id="vi-du" class="heading-6 text-text-primary">
+                Ví dụ
+              </h2>
+              {samples.map((s, i) => (
+                <div class="flex flex-col gap-100">
+                  <div class="grid grid-cols-1 gap-200 md:grid-cols-2">
+                    <CodeBlock
+                      code={s.input}
+                      lang="text"
+                      title={data.io.mode === 'file' ? data.io.input : `Dữ liệu vào ${i + 1}`}
+                      lineNumbers={false}
+                    />
+                    <CodeBlock
+                      code={s.output}
+                      lang="text"
+                      title={data.io.mode === 'file' ? data.io.output : `Kết quả ${i + 1}`}
+                      lineNumbers={false}
+                    />
+                  </div>
+                  {data.sampleNotes[i] && (
+                    <p class="body-6 text-text-secondary">{data.sampleNotes[i]}</p>
+                  )}
+                </div>
+              ))}
+            </section>
+
+            <p class="caption-2 text-text-tertiary">{sourceText}</p>
+            <div data-print-hide>
+              <Button variant="secondary" size="sm" data-print>
+                <PrinterIcon size={16} aria-hidden="true" />
+                In đề
+              </Button>
+            </div>
+          </div>
+        </TabPanel>
+
+        <TabPanel tabs="bai" id="goi-y">
+          <div class="flex flex-col gap-100">
+            <p class="body-6 text-text-secondary">
+              Mở từng gợi ý khi bạn thật sự bí. Thử nghĩ thêm vài phút trước khi mở gợi ý tiếp theo.
+            </p>
+            {data.hints.map((hint, i) => (
+              <Accordion title={`Gợi ý ${i + 1}`}>
+                <p>{hint}</p>
+              </Accordion>
+            ))}
+          </div>
+        </TabPanel>
+
+        <TabPanel tabs="bai" id="loi-giai">
+          <div class="flex flex-col gap-300" data-solution>
+            <div
+              class="flex flex-col items-start gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle p-300"
+              data-solution-gate
+            >
+              <span class="inline-flex text-icon-subtle">
+                <LockSimpleIcon size={24} aria-hidden="true" />
+              </span>
+              <p class="body-6 text-text-secondary">
+                Lời giải giúp nhiều nhất khi bạn đã tự làm và chấm thử. Nếu vẫn bí, đọc phần Phân
+                tích trước, rồi mới xem code.
+              </p>
+              <Button variant="secondary" data-solution-open>
+                Xem lời giải
+              </Button>
+            </div>
+            <div class="flex flex-col gap-400" data-solution-body hidden>
+              <article class="prose-vi">
+                <Editorial />
+              </article>
+              <section aria-labelledby="code-loi-giai" class="flex flex-col gap-200">
+                <h2 id="code-loi-giai" class="heading-6 text-text-primary">
+                  Lời giải Python
+                </h2>
+                <p class="body-6 text-text-secondary">
+                  Các nhãn <code class="font-mono">[L1]</code>, <code class="font-mono">[L2]</code>…
+                  trong chú thích ứng với số dòng của giả mã.
+                </p>
+                {partial.map((p) => (
+                  <CodeBlock code={p.code} lang="python" title={`${p.file}: ${p.label}`} />
+                ))}
+                <CodeBlock
+                  code={solution}
+                  lang="python"
+                  title={`${data.io.program} (100% số test)`}
+                />
+                <dl class="grid grid-cols-1 gap-100 sm:grid-cols-2">
+                  <div class="rounded-12 border border-border-primary p-200">
+                    <dt class="caption-4 text-text-tertiary">Độ phức tạp thời gian</dt>
+                    <dd class="body-5 text-text-primary">{editorial.data.timeComplexity}</dd>
+                  </div>
+                  <div class="rounded-12 border border-border-primary p-200">
+                    <dt class="caption-4 text-text-tertiary">Bộ nhớ</dt>
+                    <dd class="body-5 text-text-primary">{editorial.data.memoryComplexity}</dd>
+                  </div>
+                </dl>
+                <p class="body-6 flex items-start gap-75 text-text-secondary">
+                  <span class="inline-flex shrink-0 pt-25 text-icon-success">
+                    <SealCheckIcon size={16} aria-hidden="true" />
+                  </span>
+                  Đã kiểm định ngày {verify.verifiedAt.split('-').reverse().join('/')}: đúng mọi ví
+                  dụ, khớp lời giải trâu trên {verify.stressRounds} bộ test ngẫu nhiên, chạy lâu
+                  nhất {verify.maxTimeMs} ms trên CPython với {verify.tests} test chính thức, cú
+                  pháp chạy được từ Python {verify.minPython}.
+                </p>
+              </section>
+            </div>
+          </div>
+        </TabPanel>
+
+        <TabPanel tabs="bai" id="bay">
+          <div class="flex flex-col gap-200">
+            {traps.map((t) => (
+              <Callout kind="bay" title={t.title}>
+                <p>{t.signs}</p>
+                <a class="body-5 underline underline-offset-4" href={trapUrl(t.slug)}>
+                  Xem code sai và code đúng
+                </a>
+              </Callout>
+            ))}
+            {algorithms.length > 0 && (
+              <p class="body-6 text-text-secondary">
+                Xem thuật toán chạy từng bước:{' '}
+                {algorithms.map((a, i) => (
+                  <>
+                    {i > 0 && ', '}
+                    <a
+                      class="text-text-info underline underline-offset-4 hover:text-text-primary"
+                      href={`/mo-phong/${a.slug}`}
+                    >
+                      {a.title}
+                    </a>
+                  </>
+                ))}
+                .
+              </p>
+            )}
+            {lessons.length > 0 && (
+              <p class="body-6 text-text-secondary">
+                Bài học liên quan:{' '}
+                {lessons.map((l, i) => (
+                  <>
+                    {i > 0 && ', '}
+                    <a
+                      class="text-text-info underline underline-offset-4 hover:text-text-primary"
+                      href={lessonUrl(l.id)}
+                    >
+                      {l.data.title}
+                    </a>
+                  </>
+                ))}
+                .
+              </p>
+            )}
+          </div>
+        </TabPanel>
+      </Tabs>
+    </section>
+
+    <section aria-labelledby="lam-bai" class="flex flex-col gap-300" data-print-hide>
+      <div class="flex flex-col gap-75">
+        <h2 id="lam-bai" class="heading-5 text-text-primary">
+          Làm bài
+        </h2>
+        <p class="body-6 text-text-secondary">
+          Ô code đã có sẵn khung{' '}
+          {data.io.mode === 'file' ? 'đọc ghi file đúng tên của bài' : 'đọc dữ liệu vào chuẩn'}.
+          Chạy thử với ví dụ, rồi bấm Chấm thử.
+        </p>
+      </div>
+      <PythonLab
+        id={labId}
+        storageKey={`bai:${problem.id}`}
+        initialCode={starterCode(data.io)}
+        initialStdin={samples[0]?.input ?? ''}
+        files={files}
+        templates={false}
+        editorLabel={`Ô soạn code cho bài ${data.title}`}
+      />
+      <JudgePanel
+        problemId={problem.id}
+        labId={labId}
+        points={data.scoring.points}
+        timeMs={data.limits.timeMs}
+        program={data.io.program}
+        tests={verify.tests - verify.zipOnly}
+        zipOnly={verify.zipOnly}
+      />
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
+  document.querySelectorAll<HTMLElement>('[data-solution]').forEach((root) => {
+    const gate = root.querySelector<HTMLElement>('[data-solution-gate]');
+    const body = root.querySelector<HTMLElement>('[data-solution-body]');
+    root.querySelector('[data-solution-open]')?.addEventListener('click', () => {
+      if (gate) gate.hidden = true;
+      if (body) {
+        body.hidden = false;
+        body.querySelector<HTMLElement>('h2, h3')?.setAttribute('tabindex', '-1');
+        body.querySelector<HTMLElement>('h2, h3')?.focus();
+      }
+    });
+  });
+</script>

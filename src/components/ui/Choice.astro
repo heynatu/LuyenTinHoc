@@ -1,0 +1,80 @@
+---
+/**
+ * Checkbox, Radio hoặc Switch trên input gốc, nhãn bấm được, vùng bấm ≥ 44px.
+ * Switch dùng role="switch" để trình đọc màn hình đọc "bật, tắt".
+ * `state` ép trạng thái để trưng bày: hover, focus.
+ */
+import { WarningCircleIcon } from '@phosphor-icons/react/ssr';
+import type { HTMLAttributes } from 'astro/types';
+import { cx } from './recipes';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'id'> {
+  id: string;
+  label: string;
+  kind?: 'checkbox' | 'radio' | 'switch';
+  description?: string;
+  invalid?: boolean;
+  state?: 'hover' | 'focus';
+}
+
+const {
+  id,
+  label,
+  kind = 'checkbox',
+  description,
+  invalid = false,
+  state,
+  disabled,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const inputClass = { checkbox: 'ui-checkbox', radio: 'ui-radio', switch: 'ui-switch' }[kind];
+---
+
+<label
+  for={id}
+  class:list={[
+    'inline-flex min-h-touch items-start gap-100 py-75',
+    disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+    className,
+  ]}
+>
+  <span class="inline-flex shrink-0 pt-25">
+    <input
+      id={id}
+      type={kind === 'radio' ? 'radio' : 'checkbox'}
+      role={kind === 'switch' ? 'switch' : undefined}
+      class={cx(
+        inputClass,
+        state === 'hover' && 'ui-force-hover',
+        state === 'focus' && 'focus-ring',
+      )}
+      aria-invalid={invalid ? 'true' : undefined}
+      aria-describedby={description ? `${id}-desc` : undefined}
+      disabled={disabled}
+      {...rest}
+    />
+  </span>
+  <span class="flex flex-col gap-25">
+    <span class:list={['body-5', disabled ? 'text-text-primary-disabled' : 'text-text-primary']}>
+      {label}
+    </span>
+    {description &&
+      (invalid ? (
+        <span id={`${id}-desc`} class="caption-2 flex items-start gap-50 text-text-error">
+          <span class="inline-flex shrink-0 pt-25">
+            <WarningCircleIcon size={16} aria-hidden="true" />
+          </span>
+          {description}
+        </span>
+      ) : (
+        <span
+          id={`${id}-desc`}
+          class:list={['caption-2', disabled ? 'text-text-primary-disabled' : 'text-text-tertiary']}
+        >
+          {description}
+        </span>
+      ))}
+  </span>
+</label>

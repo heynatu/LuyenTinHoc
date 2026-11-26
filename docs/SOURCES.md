@@ -1,0 +1,12 @@
+# Nguồn đã tra cứu
+
+Mọi thông tin về chương trình, thể lệ, cấu trúc đề hiển thị trên website phải có nguồn ở đây (tên văn bản hoặc URL, ngày tra). Chưa có nguồn thì website ghi "cần xác minh".
+
+| Nội dung                                              | Nguồn                                                                                                                                                                  | Ngày tra | Ghi chú                                                |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| Chương trình môn Tin học GDPT 2018                    | Thông tư 32/2018/TT-BGDĐT (cần đính kèm link chính thức)                                                                                                               |          | Chưa tra, làm ở Giai đoạn 6                            |
+| Hợp nhất tỉnh Bình Định vào tỉnh Gia Lai từ 01/7/2025 | Thông số dự án do người sở hữu cung cấp (SUPER_PROMPT mục 4.8); văn bản: Nghị quyết của Quốc hội về sắp xếp đơn vị hành chính cấp tỉnh năm 2025, số hiệu `{{cần ghi}}` |          | Cần ghi số hiệu và link văn bản chính thức             |
+| Thể lệ HSG cấp tỉnh Gia Lai                           | `{{nguồn}}`                                                                                                                                                            |          | Trang /ky-thi hiện {{CẦN XÁC MINH}} cho mọi mục thể lệ |
+| Thể lệ Hội thi Tin học trẻ                            | `{{nguồn}}`                                                                                                                                                            |          | Trang /ky-thi hiện {{CẦN XÁC MINH}} cho mọi mục thể lệ |
+| Link tải phần mềm Themis                              | Chưa có; cẩm nang hướng dẫn tải từ nguồn giáo viên, Sở cung cấp                                                                                                        |          | Dùng trong cẩm nang Tự chấm bằng Themis                |
+| Đề thi chính thức các năm                             | Chưa có                                                                                                                                                                |          | Kho đề chỉ có đề luyện biên soạn (nhãn original)       |

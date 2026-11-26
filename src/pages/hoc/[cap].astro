@@ -1,0 +1,149 @@
+---
+import { CheckCircleIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Button from '../../components/ui/Button.astro';
+import Card from '../../components/ui/Card.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { GRADES, TRACK_LABEL } from '../../data/curriculum';
+import { LEVEL_INFO, LEVEL_KEYS, type LevelKey } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLessons, lessonUrl } from '../../lib/content';
+
+export function getStaticPaths() {
+  return LEVEL_KEYS.map((cap) => ({ params: { cap } }));
+}
+
+const cap = Astro.params.cap as LevelKey;
+const info = LEVEL_INFO[cap];
+const lessons = (await getLessons()).filter((l) => l.data.level === cap);
+const groups = [
+  ...info.grades.map((grade) => ({
+    key: `lop-${grade}`,
+    title: `Lớp ${grade}`,
+    note: GRADES[grade]?.focus ?? '',
+    items: lessons.filter((l) => l.data.grade === grade && l.data.track === 'chuong-trinh'),
+  })),
+  {
+    key: 'hsg',
+    title: TRACK_LABEL.hsg,
+    note: 'Vượt chương trình: kỹ thuật và thuật toán hay gặp trong đề thi học sinh giỏi.',
+    items: lessons.filter((l) => l.data.track === 'hsg'),
+  },
+].filter((g) => g.items.length > 0);
+const ordered = groups.flatMap((g) => g.items);
+const resume = JSON.stringify(
+  ordered.map((l) => ({ id: l.id, title: l.data.title, href: lessonUrl(l.id) })),
+);
+const totalMinutes = ordered.reduce((s, l) => s + l.data.minutes, 0);
+---
+
+<BaseLayout
+  title={`Lộ trình ${info.label}`}
+  description={`Bài học tin học ${info.label}: ${info.summary}`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-700 px-200 pt-600 md:px-400">
+    <PageHeader
+      title={`Lộ trình ${info.label}`}
+      crumbs={[{ label: 'Học', href: '/hoc' }]}
+      lead={info.summary}
+    />
+    <section
+      aria-label="Tiến độ lộ trình"
+      class="flex flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary p-300 md:flex-row md:items-center md:justify-between"
+      data-resume={resume}
+    >
+      <div class="flex min-w-0 flex-1 flex-col gap-100">
+        <p class="title-2 text-text-primary" data-resume-count>
+          {ordered.length} bài, khoảng {Math.round(totalMinutes / 60)} giờ học
+        </p>
+        <div
+          class="h-75 w-full max-w-narrow overflow-hidden rounded-full bg-surface-secondary"
+          aria-hidden="true"
+        >
+          <div class="h-full w-0 rounded-full bg-action-primary" data-resume-bar />
+        </div>
+        <p class="caption-2 text-text-tertiary" data-resume-note>
+          Tiến độ lưu ngay trên trình duyệt của bạn.
+        </p>
+      </div>
+      {ordered[0] && (
+        <Button href={lessonUrl(ordered[0].id)} size="lg" data-resume-link>
+          <span data-resume-label>Bắt đầu bài 1</span>
+        </Button>
+      )}
+    </section>
+    {groups.map((group) => (
+      <section aria-labelledby={group.key} class="flex flex-col gap-200">
+        <div class="flex max-w-hero flex-col gap-50">
+          <h2 id={group.key} class="heading-5 text-text-primary">
+            {group.title}
+          </h2>
+          <p class="body-6 text-text-secondary">{group.note}</p>
+        </div>
+        <ol class="grid grid-cols-1 gap-200 md:grid-cols-2">
+          {group.items.map((lesson, i) => (
+            <li class="flex">
+              <Card href={lessonUrl(lesson.id)} class="w-full">
+                <div class="flex items-start justify-between gap-100">
+                  <p class="caption-3 text-text-tertiary">
+                    Bài {i + 1} · {lesson.data.minutes} phút
+                  </p>
+                  <span
+                    class="caption-4 hidden items-center gap-50 text-text-success"
+                    data-lesson-done={lesson.id}
+                  >
+                    <CheckCircleIcon size={16} aria-hidden="true" />
+                    Đã học
+                  </span>
+                </div>
+                <p class="title-2 text-text-primary">{lesson.data.title}</p>
+                <p class="body-6 text-text-secondary">{lesson.data.description}</p>
+                {lesson.data.quiz.length > 0 && (
+                  <div class="mt-auto flex flex-wrap gap-50">
+                    <Tag>{lesson.data.quiz.length} câu tự kiểm tra</Tag>
+                  </div>
+                )}
+              </Card>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress } from '../../lib/progress';
+
+  const done = loadProgress().lessons;
+  const box = document.querySelector<HTMLElement>('[data-resume]');
+  if (box) {
+    const list = JSON.parse(box.dataset.resume ?? '[]') as {
+      id: string;
+      title: string;
+      href: string;
+    }[];
+    const count = list.filter((l) => done[l.id]).length;
+    const next = list.find((l) => !done[l.id]);
+    const bar = box.querySelector<HTMLElement>('[data-resume-bar]');
+    if (bar) bar.style.width = `${list.length ? Math.round((count / list.length) * 100) : 0}%`;
+    if (count > 0) {
+      box.querySelector('[data-resume-count]')!.textContent = `Đã học ${count}/${list.length} bài`;
+      box.querySelector('[data-resume-note]')!.textContent = next
+        ? `Bài tiếp theo: ${next.title}.`
+        : 'Bạn đã học hết lộ trình này. Hãy sang Luyện đề hoặc Thi thử.';
+    }
+    const link = box.querySelector<HTMLAnchorElement>('[data-resume-link]');
+    const label = box.querySelector('[data-resume-label]');
+    if (link && label && count > 0) {
+      link.href = next ? next.href : '/luyen-de';
+      label.textContent = next ? 'Học tiếp' : 'Sang luyện đề';
+    }
+  }
+  document.querySelectorAll<HTMLElement>('[data-lesson-done]').forEach((badge) => {
+    if (done[badge.dataset.lessonDone ?? '']) {
+      badge.classList.remove('hidden');
+      badge.classList.add('inline-flex');
+    }
+  });
+</script>

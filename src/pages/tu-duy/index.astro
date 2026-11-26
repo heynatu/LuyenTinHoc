@@ -1,0 +1,106 @@
+---
+import { CalendarCheckIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Button from '../../components/ui/Button.astro';
+import Card from '../../components/ui/Card.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { ENGINES, PUZZLE_LEVELS, PUZZLES, SKILLS, type PuzzleLevel } from '../../data/puzzles';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const levels = Object.keys(PUZZLE_LEVELS) as PuzzleLevel[];
+const list = JSON.stringify(PUZZLES.map((p) => ({ id: p.id, title: p.title, prompt: p.prompt })));
+---
+
+<BaseLayout
+  title="Rèn luyện tư duy"
+  description={`${PUZZLES.length} câu đố tư duy máy tính tự biên soạn: lập trình robot, thẻ nhị phân, sắp xếp các bước, đọc giả mã, suy luận. Từ Tiểu học tới THPT, có gợi ý và lời giải.`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-600 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Rèn luyện tư duy"
+      crumbs={[]}
+      lead="Câu đố rèn bốn kỹ năng của tư duy máy tính: phân rã vấn đề, nhận dạng mẫu, trừu tượng hóa, thiết kế thuật toán. Không cần biết lập trình."
+    />
+
+    <section
+      aria-labelledby="hom-nay"
+      class="flex max-w-hero flex-col gap-200 rounded-16 border border-border-action-primary bg-surface-primary p-300"
+      data-daily={list}
+    >
+      <p class="caption-3 inline-flex items-center gap-50 text-text-info">
+        <CalendarCheckIcon size={16} aria-hidden="true" />
+        Thử thách hôm nay
+      </p>
+      <h2 id="hom-nay" class="heading-6 text-text-primary" data-daily-title>
+        {PUZZLES[0]!.title}
+      </h2>
+      <p class="body-6 text-text-secondary" data-daily-prompt>
+        {PUZZLES[0]!.prompt}
+      </p>
+      <div>
+        <Button href={`/tu-duy/${PUZZLES[0]!.id}`} data-daily-link>
+          Giải câu đố hôm nay
+        </Button>
+      </div>
+    </section>
+
+    {levels.map((level) => {
+      const items = PUZZLES.filter((p) => p.level === level);
+      return (
+        <section aria-labelledby={`muc-${level}`} class="flex flex-col gap-300">
+          <h2 id={`muc-${level}`} class="heading-5 text-text-primary">
+            {PUZZLE_LEVELS[level]} ({items.length} câu)
+          </h2>
+          <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+            {items.map((p) => (
+              <li class="flex" data-level={p.audience.join(' ')}>
+                <Card href={`/tu-duy/${p.id}`} class="w-full">
+                  <p class="title-2 text-text-primary">{p.title}</p>
+                  <p class="body-6 text-text-secondary">{p.prompt}</p>
+                  <div class="mt-auto flex flex-wrap gap-50">
+                    <Tag>{ENGINES[p.engine]}</Tag>
+                    <Tag>{SKILLS[p.skill]}</Tag>
+                    {p.audience.map((a) => (
+                      <Tag>{LEVEL_INFO[a].label}</Tag>
+                    ))}
+                    <span
+                      class="caption-3 hidden items-center rounded-full bg-surface-success-subtle px-100 py-25 text-text-success-inverted"
+                      data-puzzle-done={p.id}
+                    >
+                      Đã giải
+                    </span>
+                  </div>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      );
+    })}
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress } from '../../lib/progress';
+  import { dailyIndex } from '../../lib/puzzles/engines';
+
+  const box = document.querySelector<HTMLElement>('[data-daily]');
+  if (box) {
+    const list = JSON.parse(box.dataset.daily ?? '[]') as {
+      id: string;
+      title: string;
+      prompt: string;
+    }[];
+    const pick = list[dailyIndex(new Date(), list.length)];
+    if (pick) {
+      box.querySelector('[data-daily-title]')!.textContent = pick.title;
+      box.querySelector('[data-daily-prompt]')!.textContent = pick.prompt;
+      box.querySelector<HTMLAnchorElement>('[data-daily-link]')!.href = `/tu-duy/${pick.id}`;
+    }
+  }
+  const solved = loadProgress().puzzles;
+  document.querySelectorAll<HTMLElement>('[data-puzzle-done]').forEach((el) => {
+    if (solved[el.dataset.puzzleDone ?? '']) el.classList.replace('hidden', 'inline-flex');
+  });
+</script>

@@ -1,0 +1,222 @@
+---
+/**
+ * Mô phỏng một thuật toán (mục 4.6). Logic ở src/lib/viz/player.ts; dữ liệu và các bước do
+ * định nghĩa trong src/lib/viz/algorithms/* sinh ra ngay trên trình duyệt.
+ */
+import {
+  CaretDoubleLeftIcon,
+  CaretDoubleRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  PlayIcon,
+  ShuffleIcon,
+} from '@phosphor-icons/react/ssr';
+import { getAlgorithm } from '../../lib/viz/registry';
+import Button from '../ui/Button.astro';
+import Choice from '../ui/Choice.astro';
+import CodeBlock from '../ui/CodeBlock.astro';
+import IconButton from '../ui/IconButton.astro';
+import Input from '../ui/Input.astro';
+import PseudoBlock from '../ui/PseudoBlock.astro';
+import Select from '../ui/Select.astro';
+import TabPanel from '../ui/TabPanel.astro';
+import Tabs from '../ui/Tabs.astro';
+import Textarea from '../ui/Textarea.astro';
+import { fieldClasses } from '../ui/recipes';
+
+interface Props {
+  slug: string;
+  compact?: boolean;
+}
+
+const { slug, compact = false } = Astro.props;
+const algo = getAlgorithm(slug);
+if (!algo) throw new Error(`Không có thuật toán ${slug}`);
+const id = `viz-${slug}`;
+---
+
+<section
+  class="flex flex-col gap-300"
+  data-visualizer={slug}
+  data-compact={compact ? 'true' : undefined}
+  aria-label={`Mô phỏng: ${algo.title}`}
+>
+  {!compact && (
+    <form
+      data-viz-form
+      class="flex flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle p-300"
+    >
+      <div class="grid grid-cols-1 gap-200 md:grid-cols-2">
+        {algo.fields.map((field) =>
+          field.kind === 'select' ? (
+            <Select
+              id={`${id}-${field.id}`}
+              label={field.label}
+              options={field.options ?? []}
+              value={field.default}
+              hint={field.help}
+              data-viz-field={field.id}
+            />
+          ) : field.kind === 'textarea' ? (
+            <Textarea
+              id={`${id}-${field.id}`}
+              label={field.label}
+              hint={field.help}
+              rows={5}
+              mono
+              data-viz-field={field.id}
+            >
+              {field.default}
+            </Textarea>
+          ) : (
+            <Input
+              id={`${id}-${field.id}`}
+              label={field.label}
+              hint={field.help}
+              value={field.default}
+              spellcheck="false"
+              autocomplete="off"
+              data-viz-field={field.id}
+            />
+          ),
+        )}
+      </div>
+      <p
+        data-viz-error
+        hidden
+        role="alert"
+        class="body-5 rounded-8 border border-border-error bg-surface-error-subtle p-100 text-text-error-inverted"
+      />
+      <div class="flex flex-wrap items-center gap-100">
+        <Button buttonType="submit">
+          <PlayIcon size={20} aria-hidden="true" />
+          Chạy với dữ liệu này
+        </Button>
+        <Button variant="secondary" data-viz-random>
+          <ShuffleIcon size={20} aria-hidden="true" />
+          Dữ liệu ngẫu nhiên
+        </Button>
+      </div>
+      {algo.presets.length > 0 && (
+        <div class="flex flex-wrap items-center gap-75">
+          <span class="caption-3 text-text-tertiary">Bộ mẫu:</span>
+          {algo.presets.map((preset, k) => (
+            <Button variant="tertiary" size="sm" data-viz-preset={k}>
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+      )}
+    </form>
+  )}
+
+  <div class:list={['grid grid-cols-1 gap-300', !compact && 'lg:grid-cols-5']}>
+    <div class:list={['flex min-w-0 flex-col gap-200', !compact && 'lg:col-span-3']}>
+      <div
+        data-viz-stage
+        class="flex min-h-stage flex-col justify-center gap-300 rounded-16 border border-border-primary bg-surface-primary-subtle p-300"
+        tabindex="0"
+        aria-label="Hình mô phỏng; dùng mũi tên trái phải để lùi tới từng bước, phím cách để chạy hoặc dừng"
+      ></div>
+      <p data-viz-message class="body-3 min-h-600 text-text-primary" aria-live="polite"></p>
+      <div
+        data-viz-question
+        hidden
+        class="flex flex-col gap-100 rounded-12 border border-border-action-primary bg-surface-primary p-200"
+      ></div>
+
+      <div class="flex flex-col gap-100">
+        <div class="flex flex-wrap items-center gap-50">
+          {!compact && (
+            <IconButton label="Về bước đầu" variant="secondary" data-viz-first>
+              <CaretDoubleLeftIcon size={20} aria-hidden="true" />
+            </IconButton>
+          )}
+          <IconButton label="Bước trước" variant="secondary" data-viz-prev>
+            <CaretLeftIcon size={20} aria-hidden="true" />
+          </IconButton>
+          <Button data-viz-play aria-pressed="false">
+            <PlayIcon size={20} aria-hidden="true" />
+            <span data-viz-play-label>Chạy</span>
+          </Button>
+          <IconButton label="Bước sau" variant="secondary" data-viz-next>
+            <CaretRightIcon size={20} aria-hidden="true" />
+          </IconButton>
+          {!compact && (
+            <IconButton label="Tới bước cuối" variant="secondary" data-viz-last>
+              <CaretDoubleRightIcon size={20} aria-hidden="true" />
+            </IconButton>
+          )}
+          <span class="caption-2 px-100 text-text-tertiary" data-viz-counter />
+          {!compact && (
+            <label class="ml-auto flex items-center gap-75">
+              <span class="caption-2 whitespace-nowrap text-text-tertiary">Tốc độ</span>
+              <select data-viz-speed class:list={[fieldClasses('interactive'), 'w-auto']}>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>
+                  1×
+                </option>
+                <option value="2">2×</option>
+                <option value="4">4×</option>
+              </select>
+            </label>
+          )}
+        </div>
+        {!compact && (
+          <label class="flex flex-col">
+            <span class="sr-only">Chọn bước</span>
+            <input type="range" min="0" value="0" class="ui-range w-full" data-viz-range />
+          </label>
+        )}
+        {!compact && (
+          <Choice
+            id={`${id}-predict`}
+            kind="switch"
+            label="Chế độ dự đoán"
+            description="Khi chạy, mô phỏng dừng lại hỏi bạn bước tiếp theo trước khi cho xem."
+            data-viz-predict
+          />
+        )}
+      </div>
+      <ul data-viz-legend class="flex flex-wrap gap-x-300 gap-y-75" aria-label="Chú giải màu"></ul>
+    </div>
+
+    {!compact && (
+      <div class="flex min-w-0 flex-col gap-300 lg:col-span-2">
+        <Tabs
+          id={`${id}-code`}
+          label="Giả mã và Python"
+          tabs={[
+            { id: 'gia-ma', label: 'Giả mã' },
+            { id: 'python', label: 'Python' },
+          ]}
+        >
+          <TabPanel tabs={`${id}-code`} id="gia-ma" active>
+            <div data-viz-pseudo>
+              <PseudoBlock code={algo.pseudocode} title={algo.title} />
+            </div>
+          </TabPanel>
+          <TabPanel tabs={`${id}-code`} id="python">
+            <div data-viz-python>
+              <CodeBlock code={algo.python} lang="python" title={`${slug.replace(/-/g, '_')}.py`} />
+            </div>
+          </TabPanel>
+        </Tabs>
+        <div class="flex flex-col gap-75 rounded-16 border border-border-primary p-200">
+          <p class="title-4 text-text-primary">Biến</p>
+          <dl data-viz-vars class="flex flex-col" />
+          <div class="h-px bg-border-primary" role="presentation" />
+          <p data-viz-counters class="caption-2 text-text-tertiary" />
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  import { initVisualizer } from '../../lib/viz/player';
+
+  document
+    .querySelectorAll<HTMLElement>('[data-visualizer]')
+    .forEach((root) => initVisualizer(root));
+</script>

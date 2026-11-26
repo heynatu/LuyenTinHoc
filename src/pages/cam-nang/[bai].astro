@@ -1,0 +1,62 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { ArrowLeftIcon, ArrowRightIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+type Article = CollectionEntry<'handbook'>;
+
+export async function getStaticPaths() {
+  const articles = (await getCollection('handbook')).sort((a, b) => a.data.order - b.data.order);
+  return articles.map((article, i) => ({
+    params: { bai: article.id },
+    props: { article, prev: articles[i - 1], next: articles[i + 1] },
+  }));
+}
+
+const { article, prev, next } = Astro.props as { article: Article; prev?: Article; next?: Article };
+const { Content } = await render(article);
+---
+
+<BaseLayout title={article.data.title} description={article.data.description}>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title={article.data.title}
+      lead={article.data.description}
+      crumbs={[{ label: 'Cẩm nang', href: '/cam-nang' }]}
+    >
+      <div class="flex flex-wrap gap-50">
+        {article.data.audience.map((l) => (
+          <Tag>{LEVEL_INFO[l].label}</Tag>
+        ))}
+      </div>
+    </PageHeader>
+    <article class="prose-vi">
+      <Content />
+    </article>
+    <nav aria-label="Bài trước và bài sau" class="flex flex-wrap justify-between gap-200">
+      {prev ? (
+        <a
+          href={`/cam-nang/${prev.id}`}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          <ArrowLeftIcon size={16} aria-hidden="true" />
+          {prev.data.title}
+        </a>
+      ) : (
+        <span />
+      )}
+      {next && (
+        <a
+          href={`/cam-nang/${next.id}`}
+          class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+        >
+          {next.data.title}
+          <ArrowRightIcon size={16} aria-hidden="true" />
+        </a>
+      )}
+    </nav>
+  </div>
+</BaseLayout>

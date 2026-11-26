@@ -1,0 +1,15 @@
+---
+/** Nhãn trạng thái nhỏ. Luôn có chữ; icon (nếu có) đi kèm, không thay chữ. */
+import { badgeClasses, cx, type Tone } from './recipes';
+
+interface Props {
+  tone?: Tone;
+  class?: string;
+}
+const { tone = 'neutral', class: className } = Astro.props;
+---
+
+<span class={cx(badgeClasses(tone), className)}>
+  <slot name="icon" />
+  <slot />
+</span>

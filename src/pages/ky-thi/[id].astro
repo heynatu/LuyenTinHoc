@@ -1,0 +1,183 @@
+---
+import { CheckCircleIcon, QuestionIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Card from '../../components/ui/Card.astro';
+import LevelBadge from '../../components/ui/LevelBadge.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { CONTEST_STATUS_LABEL, CONTESTS, type ContestProfile } from '../../data/contests';
+import { MOCK_EXAMS } from '../../data/mock-exams';
+import { TRAPS } from '../../data/traps';
+import { LEVEL_INFO, TOPICS } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProblems, problemUrl, trapUrl } from '../../lib/content';
+
+export function getStaticPaths() {
+  return CONTESTS.map((contest) => ({ params: { id: contest.id }, props: { contest } }));
+}
+
+const { contest } = Astro.props as { contest: ContestProfile };
+const problems = (await getProblems()).filter((p) => p.data.source.contest === contest.id);
+const traps = TRAPS.filter((t) => contest.traps.includes(t.slug));
+const exams = MOCK_EXAMS.filter((e) => e.contest === contest.id);
+const unverified = contest.facts.some((f) => !f.verified);
+---
+
+<BaseLayout title={contest.name} description={contest.summary}>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title={contest.name}
+      lead={contest.summary}
+      crumbs={[{ label: 'Hồ sơ kỳ thi', href: '/ky-thi' }]}
+    >
+      <div class="flex flex-wrap gap-75">
+        <Badge
+          tone={
+            contest.status === 'dang-to-chuc'
+              ? 'success'
+              : contest.status === 'luu-tru'
+                ? 'neutral'
+                : 'info'
+          }
+        >
+          {CONTEST_STATUS_LABEL[contest.status]}
+        </Badge>
+        {contest.levels.map((l) => (
+          <Tag>{LEVEL_INFO[l].label}</Tag>
+        ))}
+      </div>
+    </PageHeader>
+
+    <section aria-labelledby="the-le" class="flex max-w-reading flex-col gap-200">
+      <h2 id="the-le" class="heading-5 text-text-primary">
+        Thể lệ
+      </h2>
+      {unverified && (
+        <Callout kind="luu-y" title="Thông tin cần đối chiếu với văn bản chính thức năm hiện hành">
+          <p>
+            Mục ghi Cần xác minh chưa có văn bản để dẫn nguồn. Trang không đoán thể lệ. Nếu bạn có
+            văn bản chính thức, hãy gửi cho người biên soạn để cập nhật kèm nguồn.
+          </p>
+        </Callout>
+      )}
+      <dl class="flex flex-col gap-75">
+        {contest.facts.map((f) => (
+          <div class="flex flex-col gap-25 rounded-12 border border-border-primary p-200 sm:flex-row sm:gap-200">
+            <dt class="title-4 flex shrink-0 items-start gap-50 text-text-primary sm:w-1/3">
+              <span
+                class:list={[
+                  'inline-flex pt-25',
+                  f.verified ? 'text-icon-success' : 'text-icon-subtle',
+                ]}
+              >
+                {f.verified ? (
+                  <CheckCircleIcon size={16} aria-hidden="true" />
+                ) : (
+                  <QuestionIcon size={16} aria-hidden="true" />
+                )}
+              </span>
+              {f.label}
+            </dt>
+            <dd class="flex flex-col gap-25">
+              {f.verified ? (
+                <span class="body-6 text-text-secondary">{f.value}</span>
+              ) : (
+                <span class="caption-3 inline-flex w-fit items-center rounded-full bg-surface-warning-subtle px-100 py-25 text-text-warning-inverted">
+                  Cần xác minh
+                </span>
+              )}
+              {f.note && (
+                <span class="caption-2 text-text-tertiary">
+                  Đặc điểm thường gặp, chưa phải thể lệ: {f.note}
+                </span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {contest.notes.map((n) => (
+        <p class="body-6 text-text-secondary">{n}</p>
+      ))}
+    </section>
+
+    <section aria-labelledby="lo-trinh" class="flex flex-col gap-200">
+      <h2 id="lo-trinh" class="heading-5 text-text-primary">
+        Lộ trình ôn tập
+      </h2>
+      <ol class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+        {contest.plan.map((step, i) => (
+          <li class="flex">
+            <Card href={step.href} class="w-full">
+              <span class="caption-3 text-text-tertiary">Bước {i + 1}</span>
+              <p class="title-2 text-text-primary">{step.title}</p>
+              <p class="body-6 text-text-secondary">{step.detail}</p>
+            </Card>
+          </li>
+        ))}
+      </ol>
+      <div class="flex flex-col gap-75">
+        <h3 class="title-3 text-text-primary">Chủ đề nên ôn</h3>
+        <p class="caption-2 text-text-tertiary">
+          Theo chương trình bồi dưỡng, không phải thống kê từ đề thi thật.
+        </p>
+        <div class="flex flex-wrap gap-50">
+          {contest.topics.map((t) => (
+            <Tag>{TOPICS[t]}</Tag>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {(problems.length > 0 || exams.length > 0) && (
+      <section aria-labelledby="de-luyen" class="flex flex-col gap-200">
+        <h2 id="de-luyen" class="heading-5 text-text-primary">
+          Đề luyện liên quan
+        </h2>
+        {exams.length > 0 && (
+          <ul class="flex flex-col gap-50">
+            {exams.map((e) => (
+              <li>
+                <a
+                  class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                  href={`/thi-thu/${e.id}`}
+                >
+                  Thi thử: {e.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+          {problems.map((p) => (
+            <li class="flex">
+              <Card href={problemUrl(p.id)} class="w-full">
+                <LevelBadge level={p.data.difficulty} />
+                <p class="title-3 text-text-primary">{p.data.title}</p>
+                <p class="body-6 text-text-secondary">{p.data.summary}</p>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section aria-labelledby="bay-dac-thu" class="flex flex-col gap-100">
+      <h2 id="bay-dac-thu" class="heading-5 text-text-primary">
+        Bẫy cần tránh
+      </h2>
+      <ul class="flex flex-col gap-50">
+        {traps.map((t) => (
+          <li>
+            <a
+              class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+              href={trapUrl(t.slug)}
+            >
+              {t.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>

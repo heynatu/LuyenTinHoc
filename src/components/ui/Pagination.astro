@@ -1,0 +1,88 @@
+---
+/**
+ * Phân trang bằng link thật (trang tĩnh). Trang hiện tại có aria-current="page".
+ * Nút Trước, Sau ở trang đầu, trang cuối hiển thị dạng vô hiệu, không phải link chết.
+ */
+import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react/ssr';
+import { paginationRange } from '../../lib/ui-logic';
+import { cx } from './recipes';
+
+interface Props {
+  current: number;
+  total: number;
+  /** Mẫu đường dẫn, {page} được thay bằng số trang. Ví dụ: /luyen-de/trang-{page} */
+  hrefPattern: string;
+  /** Đường dẫn riêng cho trang 1 (thường là trang gốc). */
+  firstHref?: string;
+  label?: string;
+}
+
+const { current, total, hrefPattern, firstHref, label = 'Phân trang' } = Astro.props;
+const href = (page: number) =>
+  page === 1 && firstHref ? firstHref : hrefPattern.replace('{page}', String(page));
+const items = paginationRange(current, total);
+const cell =
+  'body-5 inline-flex min-h-touch min-w-touch items-center justify-center gap-50 rounded-8 px-100';
+const link = cx(
+  cell,
+  'text-text-secondary transition duration-300 ease-base hover:bg-surface-primary-hover hover:text-text-primary',
+);
+const disabled = cx(cell, 'cursor-not-allowed text-text-primary-disabled');
+---
+
+{total > 1 && (
+  <nav aria-label={label}>
+    <ul class="flex flex-wrap items-center gap-25">
+      <li>
+        {current > 1 ? (
+          <a href={href(current - 1)} class={link} rel="prev">
+            <CaretLeftIcon size={16} aria-hidden="true" />
+            <span>Trước</span>
+          </a>
+        ) : (
+          <span class={disabled} aria-disabled="true">
+            <CaretLeftIcon size={16} aria-hidden="true" />
+            <span>Trước</span>
+          </span>
+        )}
+      </li>
+      {items.map((item) =>
+        item === 'gap' ? (
+          <li aria-hidden="true" class={cx(cell, 'text-text-tertiary')}>
+            …
+          </li>
+        ) : (
+          <li>
+            {item === current ? (
+              <span
+                aria-current="page"
+                class={cx(cell, 'body-4 bg-action-primary text-text-on-action')}
+              >
+                <span class="sr-only">Trang </span>
+                {item}
+              </span>
+            ) : (
+              <a href={href(item)} class={link}>
+                <span class="sr-only">Trang </span>
+                {item}
+              </a>
+            )}
+          </li>
+        ),
+      )}
+      <li>
+        {current < total ? (
+          <a href={href(current + 1)} class={link} rel="next">
+            <span>Sau</span>
+            <CaretRightIcon size={16} aria-hidden="true" />
+          </a>
+        ) : (
+          <span class={disabled} aria-disabled="true">
+            <span>Sau</span>
+            <CaretRightIcon size={16} aria-hidden="true" />
+          </span>
+        )}
+      </li>
+    </ul>
+  </nav>
+)}

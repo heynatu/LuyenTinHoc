@@ -1,0 +1,52 @@
+---
+/** Vòng tiến độ (role progressbar). Không animate nét vẽ: chỉ transform và opacity được chuyển động. */
+import { ringGeometry } from '../../lib/ui-logic';
+
+interface Props {
+  value: number;
+  label: string;
+  size?: 'sm' | 'md';
+}
+
+const { value, label, size = 'md' } = Astro.props;
+const px = size === 'sm' ? 48 : 64;
+const stroke = size === 'sm' ? 4 : 6;
+const { pct, radius, circumference, offset } = ringGeometry(value, px, stroke);
+---
+
+<div
+  role="progressbar"
+  aria-label={label}
+  aria-valuemin={0}
+  aria-valuemax={100}
+  aria-valuenow={Math.round(pct)}
+  class:list={[
+    'relative inline-flex shrink-0 items-center justify-center',
+    size === 'sm' ? 'size-600' : 'size-700',
+  ]}
+>
+  <svg viewBox={`0 0 ${px} ${px}`} class="absolute inset-0 -rotate-90" aria-hidden="true">
+    <circle
+      cx={px / 2}
+      cy={px / 2}
+      r={radius}
+      fill="none"
+      stroke-width={stroke}
+      class="stroke-border-primary"
+    ></circle>
+    <circle
+      cx={px / 2}
+      cy={px / 2}
+      r={radius}
+      fill="none"
+      stroke-width={stroke}
+      stroke-linecap="round"
+      stroke-dasharray={circumference}
+      stroke-dashoffset={offset}
+      class="stroke-border-action-primary"
+    ></circle>
+  </svg>
+  <span class:list={[size === 'sm' ? 'caption-3' : 'title-4', 'text-text-primary']}>
+    {Math.round(pct)}%
+  </span>
+</div>

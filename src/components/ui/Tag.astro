@@ -1,0 +1,20 @@
+---
+/** Thẻ kỳ thi, chủ đề. Có href thì thành link (vùng bấm mở rộng tới 44px). */
+import { cx, tagClasses } from './recipes';
+
+interface Props {
+  href?: string;
+  class?: string;
+}
+const { href, class: className } = Astro.props;
+---
+
+{href ? (
+  <a href={href} class={cx(tagClasses(true), className)}>
+    <slot />
+  </a>
+) : (
+  <span class={cx(tagClasses(false), className)}>
+    <slot />
+  </span>
+)}

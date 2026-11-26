@@ -1,0 +1,84 @@
+---
+/** Chuyển giao diện: Theo hệ thống → Sáng → Tối. Lựa chọn được nhớ trong localStorage. */
+import { DesktopIcon, MoonIcon, SunIcon } from '@phosphor-icons/react/ssr';
+
+interface Props {
+  showLabel?: boolean;
+}
+const { showLabel = false } = Astro.props;
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  class:list={[
+    'inline-flex min-h-touch min-w-touch items-center justify-center gap-75 rounded-full px-100 text-icon-secondary transition duration-300 ease-base hover:bg-surface-primary-hover hover:text-icon-default active:scale-98',
+    showLabel && 'border border-border-primary',
+  ]}
+  aria-label="Đổi giao diện sáng tối"
+>
+  <span data-theme-icon="system" class="inline-flex">
+    <DesktopIcon size={20} aria-hidden="true" />
+  </span>
+  <span data-theme-icon="light" class="hidden">
+    <SunIcon size={20} aria-hidden="true" />
+  </span>
+  <span data-theme-icon="dark" class="hidden">
+    <MoonIcon size={20} aria-hidden="true" />
+  </span>
+  {showLabel && (
+    <span data-theme-label class="body-5 text-text-primary">
+      Theo hệ thống
+    </span>
+  )}
+</button>
+
+<script>
+  import { writeStorage } from '../../lib/storage';
+
+  type Pref = 'system' | 'light' | 'dark';
+  const ORDER: Pref[] = ['system', 'light', 'dark'];
+  const LABEL: Record<Pref, string> = { system: 'Theo hệ thống', light: 'Sáng', dark: 'Tối' };
+
+  const root = document.documentElement;
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentPref(): Pref {
+    const value = root.getAttribute('data-theme-pref');
+    return value === 'light' || value === 'dark' ? value : 'system';
+  }
+
+  function render() {
+    const pref = currentPref();
+    const next = ORDER[(ORDER.indexOf(pref) + 1) % ORDER.length] as Pref;
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((button) => {
+      button.setAttribute(
+        'aria-label',
+        `Giao diện: ${LABEL[pref]}. Bấm để chuyển sang ${LABEL[next]}`,
+      );
+      button.title = `Giao diện: ${LABEL[pref]}`;
+      button.querySelectorAll<HTMLElement>('[data-theme-icon]').forEach((icon) => {
+        icon.classList.toggle('hidden', icon.dataset.themeIcon !== pref);
+      });
+      const label = button.querySelector<HTMLElement>('[data-theme-label]');
+      if (label) label.textContent = LABEL[pref];
+    });
+  }
+
+  function apply(pref: Pref) {
+    const dark = pref === 'dark' || (pref === 'system' && media.matches);
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    root.setAttribute('data-theme-pref', pref);
+    writeStorage('theme', pref);
+    render();
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const pref = currentPref();
+      apply(ORDER[(ORDER.indexOf(pref) + 1) % ORDER.length] as Pref);
+    });
+  });
+
+  render();
+</script>

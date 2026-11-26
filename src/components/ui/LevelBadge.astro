@@ -1,0 +1,39 @@
+---
+/**
+ * Cấp độ bài 1 đến 5 (Làm quen, Cơ bản, Vận dụng, Vận dụng cao, Chuyên sâu).
+ * Phân biệt bằng số, chữ và thước 5 vạch (số vạch đậm bằng cấp độ), không chỉ bằng màu.
+ * Thước vạch là biểu đồ dữ liệu nhỏ, ẩn với trình đọc màn hình vì chữ đã nói đủ.
+ */
+import { LEVELS, type Level } from '../../lib/ui-logic';
+import Badge from './Badge.astro';
+import { LEVEL_TONE } from './recipes';
+
+interface Props {
+  level: Level;
+}
+const { level } = Astro.props;
+const bars = [1, 2, 3, 4, 5];
+---
+
+<Badge tone={LEVEL_TONE[level]}>
+  <svg
+    slot="icon"
+    viewBox="0 0 15 12"
+    width="15"
+    height="12"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    {bars.map((bar) => (
+      <rect
+        x={(bar - 1) * 3}
+        y={12 - (bar + 1) * 2}
+        width="2"
+        height={(bar + 1) * 2}
+        rx="0.5"
+        opacity={bar <= level ? 1 : 0.3}
+      />
+    ))}
+  </svg>
+  Cấp {level}: {LEVELS[level]}
+</Badge>

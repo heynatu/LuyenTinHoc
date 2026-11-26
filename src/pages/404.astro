@@ -1,0 +1,48 @@
+---
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr';
+import Button from '../components/ui/Button.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Không tìm thấy trang"
+  description="Trang bạn tìm không tồn tại hoặc đã được chuyển đi."
+  noindex
+>
+  <section class="mx-auto flex w-full max-w-content flex-col items-start gap-300 px-200 pt-800 pb-700 md:px-400">
+    <span class="inline-flex size-700 items-center justify-center rounded-16 bg-surface-secondary text-icon-subtle">
+      <MagnifyingGlassIcon size={32} aria-hidden="true" />
+    </span>
+    <p class="caption-3 text-text-tertiary">Lỗi 404</p>
+    <h1 class="heading-4 md:heading-3 max-w-hero text-text-primary">Không tìm thấy trang này</h1>
+    <p class="body-3 max-w-hero text-text-secondary">
+      Đường dẫn có thể bị gõ sai hoặc trang đã được chuyển đi. Hãy tìm nội dung bạn cần, hoặc vào
+      một khu vực chính bên dưới.
+    </p>
+    <div class="flex flex-wrap gap-100">
+      <Button data-search-open>
+        <MagnifyingGlassIcon size={20} aria-hidden="true" />
+        Tìm trên Tư Duy Tin
+      </Button>
+      <Button href="/" variant="secondary">
+        Về trang chủ
+      </Button>
+    </div>
+    <nav aria-label="Khu vực chính" class="flex flex-wrap gap-200">
+      {[
+        ['Học', '/hoc'],
+        ['Mô phỏng', '/mo-phong'],
+        ['Luyện đề', '/luyen-de'],
+        ['Tư duy', '/tu-duy'],
+        ['Cẩm nang', '/cam-nang'],
+      ].map(([label, href]) => (
+        <a
+          href={href}
+          class="body-5 inline-flex min-h-touch items-center text-text-info underline underline-offset-4 hover:text-text-primary"
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
+  </section>
+</BaseLayout>

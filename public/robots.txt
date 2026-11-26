@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /thiet-ke
+Disallow: /tien-do
+
+Sitemap: https://tu-duy-tin.vercel.app/sitemap-index.xml

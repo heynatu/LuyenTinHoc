@@ -1,0 +1,388 @@
+---
+import { render } from 'astro:content';
+import { ClockIcon, PaperPlaneTiltIcon, PlayIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import PythonLab from '../../components/lab/PythonLab.astro';
+import Button from '../../components/ui/Button.astro';
+import Callout from '../../components/ui/Callout.astro';
+import CodeBlock from '../../components/ui/CodeBlock.astro';
+import Dialog from '../../components/ui/Dialog.astro';
+import TabPanel from '../../components/ui/TabPanel.astro';
+import Tabs from '../../components/ui/Tabs.astro';
+import { MOCK_EXAMS, type MockExam } from '../../data/mock-exams';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProblems, problemUrl } from '../../lib/content';
+import { samplesOf, starterCode } from '../../lib/problems';
+
+export async function getStaticPaths() {
+  const verified = new Set((await getProblems()).map((p) => p.id));
+  return MOCK_EXAMS.filter((e) => e.problems.every((p) => verified.has(p.id))).map((exam) => ({
+    params: { de: exam.id },
+    props: { exam },
+  }));
+}
+
+const { exam } = Astro.props as { exam: MockExam };
+const all = await getProblems();
+const items = await Promise.all(
+  exam.problems.map(async (ref, i) => {
+    const problem = all.find((p) => p.id === ref.id)!;
+    const { Content } = await render(problem);
+    return {
+      ...ref,
+      index: i + 1,
+      problem,
+      Content,
+      samples: samplesOf(ref.id),
+      labId: `thi-${exam.id}-${ref.id}`,
+    };
+  }),
+);
+const maxScore = exam.problems.reduce((s, p) => s + p.points, 0);
+const config = JSON.stringify({
+  id: exam.id,
+  minutes: exam.minutes,
+  problems: items.map((it) => ({
+    id: it.id,
+    points: it.points,
+    labId: it.labId,
+    title: `Bài ${it.index}: ${it.problem.data.title}`,
+    href: problemUrl(it.id),
+  })),
+});
+---
+
+<BaseLayout title={exam.title} description={exam.description} noindex>
+  <div
+    class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pt-600 md:px-400"
+    data-exam={config}
+  >
+    <PageHeader
+      title={exam.title}
+      lead={exam.description}
+      crumbs={[{ label: 'Thi thử', href: '/thi-thu' }]}
+    />
+
+    <section data-exam-intro class="flex max-w-hero flex-col gap-200">
+      <ul class="body-6 flex list-disc flex-col gap-50 pl-300 text-text-secondary">
+        <li>
+          {exam.problems.length} bài, tổng {maxScore} điểm, làm trong {exam.minutes} phút.
+        </li>
+        <li>
+          Code của từng bài tự lưu trên máy bạn. Tải lại trang không mất code, đồng hồ vẫn chạy
+          tiếp.
+        </li>
+        <li>
+          Nộp bài hoặc hết giờ: máy chấm tất cả các bài, báo điểm từng bài. Lời giải mở sau khi nộp.
+        </li>
+        <li>Đọc đề kỹ: bài đọc ghi file phải dùng đúng tên file trong đề.</li>
+      </ul>
+      <div>
+        <Button size="lg" data-exam-start>
+          <PlayIcon size={20} aria-hidden="true" />
+          Bắt đầu làm bài
+        </Button>
+      </div>
+    </section>
+
+    <section data-exam-work hidden class="flex flex-col gap-300" aria-label="Làm bài">
+      <div class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-200 rounded-16 border border-border-primary bg-surface-primary p-200">
+        <p class="title-2 inline-flex items-center gap-75 text-text-primary">
+          <ClockIcon size={24} aria-hidden="true" />
+          <span>
+            Còn{' '}
+            <span class="font-mono" data-exam-clock>
+              --:--
+            </span>
+          </span>
+        </p>
+        <p class="sr-only" aria-live="polite" data-exam-announce></p>
+        <Button data-dialog-open="nop-bai">
+          <PaperPlaneTiltIcon size={20} aria-hidden="true" />
+          Nộp bài
+        </Button>
+      </div>
+      <Tabs
+        id="de-thi"
+        label="Các bài trong đề"
+        tabs={items.map((it) => ({ id: `bai-${it.index}`, label: `Bài ${it.index}` }))}
+      >
+        {items.map((it) => (
+          <TabPanel tabs="de-thi" id={`bai-${it.index}`} active={it.index === 1}>
+            <div class="flex flex-col gap-300">
+              <div class="flex flex-col gap-75">
+                <h2 class="heading-5 text-text-primary">
+                  Bài {it.index}: {it.problem.data.title} ({it.points} điểm)
+                </h2>
+                <p class="body-6 font-mono text-text-secondary">
+                  {it.problem.data.io.program}
+                  {it.problem.data.io.mode === 'file'
+                    ? `, ${it.problem.data.io.input}, ${it.problem.data.io.output}`
+                    : ' (vào ra chuẩn)'}
+                  , {it.problem.data.limits.timeMs / 1000} giây
+                </p>
+              </div>
+              <article class="prose-vi">
+                <it.Content />
+              </article>
+              <ul class="body-6 flex flex-col gap-50 text-text-secondary">
+                {it.problem.data.subtasks.map((s) => (
+                  <li>
+                    {s.percent}% số test: {s.constraint}
+                  </li>
+                ))}
+              </ul>
+              <div class="grid grid-cols-1 gap-200 md:grid-cols-2">
+                <CodeBlock
+                  code={it.samples[0]?.input ?? ''}
+                  lang="text"
+                  title="Ví dụ: dữ liệu vào"
+                  lineNumbers={false}
+                />
+                <CodeBlock
+                  code={it.samples[0]?.output ?? ''}
+                  lang="text"
+                  title="Ví dụ: kết quả"
+                  lineNumbers={false}
+                />
+              </div>
+              <PythonLab
+                id={it.labId}
+                storageKey={`thi:${exam.id}:${it.id}`}
+                initialCode={starterCode(it.problem.data.io)}
+                initialStdin={it.samples[0]?.input ?? ''}
+                files={
+                  it.problem.data.io.mode === 'file'
+                    ? { input: it.problem.data.io.input, output: it.problem.data.io.output }
+                    : undefined
+                }
+                templates={false}
+                trace={false}
+                editorLabel={`Ô soạn code bài ${it.index}`}
+              />
+            </div>
+          </TabPanel>
+        ))}
+      </Tabs>
+    </section>
+
+    <section
+      data-exam-report
+      hidden
+      class="flex flex-col gap-300"
+      aria-labelledby="ket-qua-thi"
+      tabindex="-1"
+    >
+      <h2 id="ket-qua-thi" class="heading-4 text-text-primary">
+        Kết quả
+      </h2>
+      <p class="body-6 text-text-secondary" data-exam-progress aria-live="polite"></p>
+      <div class="overflow-x-auto rounded-16 border border-border-primary">
+        <table class="w-full min-w-max text-left">
+          <caption class="sr-only">Điểm từng bài</caption>
+          <thead class="bg-surface-primary-subtle">
+            <tr>
+              <th scope="col" class="title-4 p-200 text-text-primary">
+                Bài
+              </th>
+              <th scope="col" class="title-4 p-200 text-text-primary">
+                Test đúng
+              </th>
+              <th scope="col" class="title-4 p-200 text-text-primary">
+                Điểm
+              </th>
+              <th scope="col" class="title-4 p-200 text-text-primary">
+                Lời giải
+              </th>
+            </tr>
+          </thead>
+          <tbody data-exam-rows></tbody>
+        </table>
+      </div>
+      <p class="title-1 text-text-primary" data-exam-total></p>
+      <p class="caption-2 text-text-tertiary">
+        Điểm ước lượng trên trình duyệt với hệ số thời gian 3 lần. Máy chấm thật có thể khác.
+      </p>
+      <div>
+        <Button variant="secondary" data-exam-restart>
+          Làm lại đề này
+        </Button>
+      </div>
+    </section>
+
+    <Callout kind="meo" title="Mẹo phòng thi">
+      <p>
+        Đọc hết các bài trước, làm bài dễ nhất trước. Mỗi bài, viết lời giải đạt subtask nhỏ trước
+        rồi mới tối ưu.
+      </p>
+    </Callout>
+  </div>
+
+  <Dialog
+    id="nop-bai"
+    title="Nộp bài?"
+    description="Sau khi nộp, máy chấm tất cả các bài và lần thi này kết thúc."
+  >
+    <p>Nếu còn thời gian, hãy kiểm tra lại tên file và thử các test biên trước khi nộp.</p>
+    <Fragment slot="footer">
+      <Button variant="secondary" data-dialog-close>
+        Làm tiếp
+      </Button>
+      <Button data-dialog-close data-exam-submit>
+        Nộp bài
+      </Button>
+    </Fragment>
+  </Dialog>
+</BaseLayout>
+
+<script>
+  import { judgeCode, loadTests } from '../../lib/judge/judge';
+  import { scorePerTest } from '../../lib/judge/verdict';
+  import { getLab } from '../../lib/lab/python-lab';
+  import { recordExam } from '../../lib/progress';
+  import { readStorage, removeStorage, writeStorage } from '../../lib/storage';
+
+  type Config = {
+    id: string;
+    minutes: number;
+    problems: { id: string; points: number; labId: string; title: string; href: string }[];
+  };
+  type State = { start: number; done?: boolean };
+
+  const root = document.querySelector<HTMLElement>('[data-exam]');
+  if (root) {
+    const config = JSON.parse(root.dataset.exam ?? '{}') as Config;
+    const key = `exam:${config.id}`;
+    const intro = root.querySelector<HTMLElement>('[data-exam-intro]')!;
+    const work = root.querySelector<HTMLElement>('[data-exam-work]')!;
+    const report = root.querySelector<HTMLElement>('[data-exam-report]')!;
+    const clock = root.querySelector<HTMLElement>('[data-exam-clock]')!;
+    const announce = root.querySelector<HTMLElement>('[data-exam-announce]')!;
+    const progress = root.querySelector<HTMLElement>('[data-exam-progress]')!;
+    const rows = root.querySelector<HTMLElement>('[data-exam-rows]')!;
+    const total = root.querySelector<HTMLElement>('[data-exam-total]')!;
+    const durationMs = config.minutes * 60_000;
+    let timer = 0;
+    let submitting = false;
+
+    const readState = (): State | null => {
+      try {
+        const raw = JSON.parse(readStorage(key) ?? 'null') as unknown;
+        if (raw && typeof raw === 'object' && typeof (raw as State).start === 'number')
+          return raw as State;
+      } catch {
+        // Dữ liệu hỏng thì coi như chưa thi.
+      }
+      return null;
+    };
+    const saveState = (state: State) => writeStorage(key, JSON.stringify(state));
+    const fmt = (ms: number) => {
+      const s = Math.max(0, Math.ceil(ms / 1000));
+      const h = Math.floor(s / 3600);
+      const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    };
+
+    function tick(state: State) {
+      const left = state.start + durationMs - Date.now();
+      clock.textContent = fmt(left);
+      const minutes = Math.ceil(left / 60_000);
+      if ([30, 10, 5, 1].includes(minutes) && left % 60_000 > 59_000)
+        announce.textContent = `Còn ${minutes} phút.`;
+      if (left <= 0) void submit('Hết giờ. Đang chấm bài…');
+    }
+
+    function showWork(state: State) {
+      intro.hidden = true;
+      report.hidden = true;
+      work.hidden = false;
+      tick(state);
+      timer = window.setInterval(() => tick(state), 1000);
+    }
+
+    function cell(text: string) {
+      const td = document.createElement('td');
+      td.className = 'body-6 p-200 text-text-secondary';
+      td.textContent = text;
+      return td;
+    }
+
+    async function submit(message: string) {
+      if (submitting) return;
+      submitting = true;
+      window.clearInterval(timer);
+      const state = readState();
+      const usedMs = state ? Math.min(durationMs, Date.now() - state.start) : 0;
+      work.hidden = true;
+      report.hidden = false;
+      report.focus();
+      rows.replaceChildren();
+      progress.textContent = message;
+      let sum = 0;
+      const max = config.problems.reduce((s, p) => s + p.points, 0);
+      for (const [i, p] of config.problems.entries()) {
+        progress.textContent = `Đang chấm bài ${i + 1}/${config.problems.length}…`;
+        const tr = document.createElement('tr');
+        tr.className = 'even:bg-surface-primary-subtle';
+        try {
+          const data = await loadTests(p.id);
+          const code = getLab(p.labId)?.getCode() ?? '';
+          const results = await judgeCode(code, data, { factor: 3 });
+          const s = scorePerTest(
+            results.map((r) => r.verdict),
+            p.points,
+          );
+          sum += s.score;
+          tr.append(
+            cell(p.title),
+            cell(`${s.correct}/${data.tests.length}`),
+            cell(`${s.score}/${p.points}`),
+          );
+        } catch {
+          tr.append(cell(p.title), cell('Không tải được bộ test'), cell(`0/${p.points}`));
+        }
+        const link = document.createElement('a');
+        link.href = p.href;
+        link.textContent = 'Xem lời giải';
+        link.className =
+          'body-5 text-text-info underline underline-offset-4 hover:text-text-primary';
+        const td = cell('');
+        td.append(link);
+        tr.append(td);
+        rows.append(tr);
+      }
+      sum = Math.round(sum * 100) / 100;
+      total.textContent = `Tổng: ${sum}/${max} điểm, làm trong ${fmt(usedMs)}.`;
+      progress.textContent =
+        'Chấm xong. Xem lời giải của bài chưa đạt điểm tối đa để rút kinh nghiệm.';
+      recordExam(config.id, sum, max);
+      saveState({ start: state?.start ?? Date.now(), done: true });
+      submitting = false;
+    }
+
+    root.querySelector('[data-exam-start]')?.addEventListener('click', () => {
+      const state = { start: Date.now() };
+      saveState(state);
+      showWork(state);
+    });
+    document
+      .querySelector('[data-exam-submit]')
+      ?.addEventListener('click', () => void submit('Đang chấm bài…'));
+    root.querySelector('[data-exam-restart]')?.addEventListener('click', () => {
+      removeStorage(key);
+      for (const p of config.problems) {
+        removeStorage(`thi:${config.id}:${p.id}:code`);
+        removeStorage(`thi:${config.id}:${p.id}:stdin`);
+      }
+      location.reload();
+    });
+
+    const state = readState();
+    if (state && !state.done) {
+      if (Date.now() - state.start >= durationMs)
+        void submit('Đã hết giờ từ lần mở trước. Đang chấm bài…');
+      else showWork(state);
+    }
+  }
+</script>

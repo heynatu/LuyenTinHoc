@@ -1,0 +1,100 @@
+---
+/**
+ * Khung hiển thị code và giả mã: thanh tiêu đề, số dòng, tô sáng dòng, nút sao chép.
+ * Mỗi dòng có data-line để động cơ mô phỏng (Giai đoạn 5) đồng bộ dòng đang chạy.
+ * Dòng đang chọn có nền khác và dấu ▶ ở cột số dòng: không chỉ phân biệt bằng màu.
+ * Cuộn ngang nằm trong khung, trang không bị tràn ở 390px.
+ */
+import { CaretRightIcon, CheckIcon, CopyIcon } from '@phosphor-icons/react/ssr';
+import type { Line } from '../../lib/highlight';
+import { iconButtonClasses } from './recipes';
+
+interface Props {
+  lines: Line[];
+  raw: string;
+  title?: string;
+  badge: string;
+  highlight?: number[];
+  lineNumbers?: boolean;
+  copy?: boolean;
+  /** Nhãn cho vùng code (trình đọc màn hình). */
+  label: string;
+}
+
+const {
+  lines,
+  raw,
+  title,
+  badge,
+  highlight = [],
+  lineNumbers = true,
+  copy = true,
+  label,
+} = Astro.props;
+const active = new Set(highlight);
+---
+
+<figure
+  class="ui-code-frame overflow-hidden rounded-12 border border-border-primary bg-surface-primary-subtle"
+  data-code-frame
+>
+  <figcaption class="flex min-h-touch items-center justify-between gap-100 bg-surface-secondary py-25 pr-50 pl-200">
+    <span class="flex min-w-0 items-center gap-100">
+      {title && <span class="body-5 truncate font-mono text-text-primary">{title}</span>}
+      <span class="caption-4 text-text-tertiary">{badge}</span>
+    </span>
+    {copy && (
+      <button
+        type="button"
+        class={iconButtonClasses('ghost')}
+        aria-label="Sao chép code"
+        title="Sao chép code"
+        data-copy-code
+      >
+        <span data-copy-icon="idle" class="inline-flex">
+          <CopyIcon size={20} aria-hidden="true" />
+        </span>
+        <span data-copy-icon="done" class="hidden">
+          <CheckIcon size={20} aria-hidden="true" />
+        </span>
+      </button>
+    )}
+  </figcaption>
+  <div class="overflow-x-auto" role="region" aria-label={label} tabindex="0">
+    <!--
+      <pre> dùng khoảng trắng bình thường để khoảng trắng do định dạng template không hiện ra;
+      chỉ từng đoạn code giữ nguyên khoảng trắng (whitespace-pre), nên thụt lề Python vẫn đúng.
+    -->
+    <pre class="ui-code body-6 min-w-max py-100 font-mono whitespace-normal"><code data-raw={raw} class="flex flex-col">{
+      lines.map((line, index) => {
+        const n = index + 1;
+        const on = active.has(n);
+        return (
+          <span
+            class:list={['flex min-h-200 pr-300', on ? 'bg-surface-primary-hover' : '']}
+            data-line={n}
+            data-active={on ? 'true' : undefined}
+          >
+            {lineNumbers && (
+              <span
+                aria-hidden="true"
+                class:list={[
+                  'inline-flex w-600 shrink-0 items-center justify-end gap-25 pr-200 select-none',
+                  on ? 'text-text-info' : 'text-text-tertiary',
+                ]}
+              >
+                {on && <CaretRightIcon size={12} weight="bold" />}
+                {n}
+              </span>
+            )}
+            <span class:list={['flex-1', !lineNumbers && 'pl-200']}>
+              {line.map((seg) => (
+                <span class:list={[...seg.classes, 'whitespace-pre']}>{seg.text}</span>
+              ))}
+            </span>
+          </span>
+        );
+      })
+    }</code></pre>
+  </div>
+</figure>

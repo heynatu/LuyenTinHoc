@@ -1,0 +1,51 @@
+---
+/**
+ * Nút chỉ có icon. `label` bắt buộc: thành aria-label và title (chú thích khi di chuột).
+ * Icon truyền qua slot, kích thước 20 hoặc 24, aria-hidden.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { cx, iconButtonClasses, type IconButtonVariant, type VisualState } from './recipes';
+
+interface Props extends Omit<HTMLAttributes<'button'>, 'type'> {
+  label: string;
+  href?: string;
+  variant?: IconButtonVariant;
+  disabled?: boolean;
+  state?: VisualState;
+}
+
+const {
+  label,
+  href,
+  variant = 'ghost',
+  disabled = false,
+  state,
+  class: className,
+  ...rest
+} = Astro.props;
+const look = state ?? (disabled ? 'disabled' : 'interactive');
+const classes = cx(iconButtonClasses(variant, look), className);
+---
+
+{href && !disabled ? (
+  <a
+    href={href}
+    class={classes}
+    aria-label={label}
+    title={label}
+    {...(rest as HTMLAttributes<'a'>)}
+  >
+    <slot />
+  </a>
+) : (
+  <button
+    type="button"
+    class={classes}
+    aria-label={label}
+    title={label}
+    disabled={disabled || state === 'disabled'}
+    {...rest}
+  >
+    <slot />
+  </button>
+)}

@@ -1,0 +1,62 @@
+---
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Card from '../../components/ui/Card.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { CONTEST_STATUS_LABEL, CONTESTS } from '../../data/contests';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProblems } from '../../lib/content';
+
+const problems = await getProblems();
+---
+
+<BaseLayout
+  title="Hồ sơ kỳ thi"
+  description="Thông tin từng kỳ thi tin học: học sinh giỏi cấp tỉnh Gia Lai, kho lưu trữ Bình Định, Tin học trẻ; lộ trình ôn, đề luyện và bẫy cần tránh."
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Hồ sơ kỳ thi"
+      crumbs={[]}
+      lead="Mỗi hồ sơ gồm thông tin thể lệ đã xác minh, lộ trình ôn tập, đề luyện liên quan và các bẫy đặc thù."
+    />
+    <Callout kind="luu-y" title="Thông tin cần đối chiếu">
+      <p>
+        Thể lệ thay đổi theo từng năm. Mục nào chưa có văn bản chính thức được ghi là cần xác minh.
+        Hãy đối chiếu với văn bản của Sở Giáo dục và Đào tạo hoặc ban tổ chức năm hiện hành.
+      </p>
+    </Callout>
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+      {CONTESTS.map((c) => {
+        const count = problems.filter((p) => p.data.source.contest === c.id).length;
+        return (
+          <li class="flex">
+            <Card href={`/ky-thi/${c.id}`} class="w-full">
+              <Badge
+                tone={
+                  c.status === 'dang-to-chuc'
+                    ? 'success'
+                    : c.status === 'luu-tru'
+                      ? 'neutral'
+                      : 'info'
+                }
+              >
+                {CONTEST_STATUS_LABEL[c.status]}
+              </Badge>
+              <p class="title-2 text-text-primary">{c.name}</p>
+              <p class="body-6 text-text-secondary">{c.summary}</p>
+              <div class="mt-auto flex flex-wrap gap-50">
+                {c.levels.map((l) => (
+                  <Tag>{LEVEL_INFO[l].label}</Tag>
+                ))}
+                <Tag>{count} bài luyện</Tag>
+              </div>
+            </Card>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</BaseLayout>

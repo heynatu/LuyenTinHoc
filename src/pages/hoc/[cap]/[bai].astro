@@ -1,0 +1,250 @@
+---
+import { render } from 'astro:content';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretDownIcon,
+  CheckCircleIcon,
+} from '@phosphor-icons/react/ssr';
+import CourseOutline from '../../../components/learn/CourseOutline.astro';
+import Quiz from '../../../components/learn/Quiz.astro';
+import PageHeader from '../../../components/layout/PageHeader.astro';
+import Button from '../../../components/ui/Button.astro';
+import Tag from '../../../components/ui/Tag.astro';
+import { STRANDS, TRACK_LABEL } from '../../../data/curriculum';
+import { TRAPS } from '../../../data/traps';
+import { LEVEL_INFO } from '../../../data/taxonomy';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import {
+  assertRefs,
+  getLessons,
+  getProblems,
+  lessonUrl,
+  problemUrl,
+  trapUrl,
+  type Lesson,
+} from '../../../lib/content';
+import { getAlgorithm } from '../../../lib/viz/registry';
+
+export async function getStaticPaths() {
+  const lessons = await getLessons();
+  return lessons.map((lesson) => {
+    const [cap, bai] = lesson.id.split('/');
+    const siblings = lessons.filter((l) => l.data.level === lesson.data.level);
+    const i = siblings.findIndex((l) => l.id === lesson.id);
+    return {
+      params: { cap, bai },
+      props: {
+        lesson,
+        prev: siblings[i - 1],
+        next: siblings[i + 1],
+        outline: siblings.map((l) => ({
+          id: l.id,
+          title: l.data.title,
+          minutes: l.data.minutes,
+          group: l.data.grade ? `Lớp ${l.data.grade}` : TRACK_LABEL.hsg,
+        })),
+      },
+    };
+  });
+}
+
+const { lesson, prev, next, outline } = Astro.props as {
+  lesson: Lesson;
+  prev?: Lesson;
+  next?: Lesson;
+  outline: { id: string; title: string; minutes: number; group: string }[];
+};
+const { data } = lesson;
+await assertRefs(`Bài học ${lesson.id}`, data.related);
+const { Content } = await render(lesson);
+const problems = (await getProblems()).filter((p) => data.related.problems.includes(p.id));
+const algorithms = data.related.algorithms.map((s) => getAlgorithm(s)!);
+const traps = TRAPS.filter((t) => data.related.traps.includes(t.slug));
+const where = data.grade ? `Lớp ${data.grade}` : TRACK_LABEL.hsg;
+---
+
+<BaseLayout title={data.title} description={data.description}>
+  <div class="mx-auto grid w-full max-w-content grid-cols-1 gap-600 px-200 pt-600 md:px-400 lg:grid-cols-4">
+    <aside class="hidden lg:block" aria-label="Lộ trình">
+      <div class="sticky top-900 flex max-h-screen flex-col gap-200 overflow-y-auto pb-600">
+        <CourseOutline
+          title={`Lộ trình ${LEVEL_INFO[data.level].label}`}
+          current={lesson.id}
+          items={outline}
+        />
+      </div>
+    </aside>
+    <div class="flex min-w-0 flex-col gap-500 lg:col-span-3">
+      <PageHeader
+        title={data.title}
+        lead={data.description}
+        crumbs={[
+          { label: 'Học', href: '/hoc' },
+          { label: LEVEL_INFO[data.level].label, href: `/hoc/${data.level}` },
+        ]}
+      >
+        <div class="flex flex-wrap gap-50">
+          <Tag>{where}</Tag>
+          <Tag>
+            Mạch {data.strand}: {STRANDS[data.strand].split(' (')[0]}
+          </Tag>
+          <Tag>{data.minutes} phút</Tag>
+        </div>
+      </PageHeader>
+
+      <details class="ui-accordion group rounded-12 border border-border-primary bg-surface-primary-subtle lg:hidden">
+        <summary class="title-4 flex justify-between gap-200 min-h-touch cursor-pointer list-none items-center px-200 text-text-primary">
+          Mục lục lộ trình {LEVEL_INFO[data.level].label}
+          <span class="inline-flex shrink-0 text-icon-subtle transition duration-300 ease-base group-open:rotate-180">
+            <CaretDownIcon size={20} aria-hidden="true" />
+          </span>
+        </summary>
+        <div class="px-100 pb-200">
+          <CourseOutline
+            title={`Lộ trình ${LEVEL_INFO[data.level].label}`}
+            current={lesson.id}
+            items={outline}
+            compact
+          />
+        </div>
+      </details>
+
+      <section
+        aria-labelledby="muc-tieu"
+        class="flex max-w-hero flex-col gap-100 rounded-16 border border-border-primary bg-surface-primary-subtle p-300"
+      >
+        <h2 id="muc-tieu" class="title-2 text-text-primary">
+          Sau bài này bạn có thể
+        </h2>
+        <ul class="flex flex-col gap-75">
+          {data.objectives.map((o) => (
+            <li class="body-6 flex items-start gap-75 text-text-secondary">
+              <span class="inline-flex shrink-0 pt-25 text-icon-success">
+                <CheckCircleIcon size={16} aria-hidden="true" />
+              </span>
+              {o}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <article class="prose-vi">
+        <Content />
+      </article>
+
+      {(algorithms.length > 0 || problems.length > 0 || traps.length > 0) && (
+        <section aria-labelledby="lien-quan" class="flex flex-col gap-200">
+          <h2 id="lien-quan" class="heading-6 text-text-primary">
+            Xem tiếp
+          </h2>
+          <ul class="flex flex-col gap-75">
+            {algorithms.map((a) => (
+              <li>
+                <a
+                  class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                  href={`/mo-phong/${a.slug}`}
+                >
+                  Mô phỏng: {a.title}
+                </a>
+              </li>
+            ))}
+            {problems.map((p) => (
+              <li>
+                <a
+                  class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                  href={problemUrl(p.id)}
+                >
+                  Bài tập: {p.data.title}
+                </a>
+              </li>
+            ))}
+            {traps.map((t) => (
+              <li>
+                <a
+                  class="body-5 text-text-info underline underline-offset-4 hover:text-text-primary"
+                  href={trapUrl(t.slug)}
+                >
+                  Bẫy: {t.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <Quiz id={`bai:${lesson.id}`} items={data.quiz} />
+
+      <div class="flex flex-wrap items-center gap-200 rounded-16 border border-border-primary bg-surface-primary p-300">
+        <div class="flex min-w-0 flex-1 flex-col gap-25">
+          <p class="title-3 text-text-primary">Xong bài này?</p>
+          <p class="body-6 text-text-secondary">
+            Đánh dấu đã học để theo dõi tiến độ trong mục lục và trang Tiến độ.
+          </p>
+        </div>
+        <Button variant="secondary" data-mark-lesson={lesson.id}>
+          <CheckCircleIcon size={20} aria-hidden="true" />
+          <span data-mark-label>Đánh dấu đã học</span>
+        </Button>
+        {next && (
+          <Button href={lessonUrl(next.id)} data-next-lesson>
+            Học bài tiếp theo
+            <ArrowRightIcon size={20} aria-hidden="true" />
+          </Button>
+        )}
+      </div>
+
+      <nav aria-label="Bài trước và bài sau" class="flex flex-wrap justify-between gap-200">
+        {prev ? (
+          <a
+            href={lessonUrl(prev.id)}
+            class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+          >
+            <ArrowLeftIcon size={16} aria-hidden="true" />
+            {prev.data.title}
+          </a>
+        ) : (
+          <span />
+        )}
+        {next && (
+          <a
+            href={lessonUrl(next.id)}
+            class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+          >
+            {next.data.title}
+            <ArrowRightIcon size={16} aria-hidden="true" />
+          </a>
+        )}
+      </nav>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress, markLesson, unmarkLesson } from '../../../lib/progress';
+  import { showToast } from '../../../lib/toast';
+
+  const button = document.querySelector<HTMLButtonElement>('[data-mark-lesson]');
+  const label = button?.querySelector<HTMLElement>('[data-mark-label]');
+  const id = button?.dataset.markLesson ?? '';
+  const render = () => {
+    const done = Boolean(loadProgress().lessons[id]);
+    if (label) label.textContent = done ? 'Đã học (bấm để bỏ đánh dấu)' : 'Đánh dấu đã học';
+    button?.setAttribute('aria-pressed', String(done));
+  };
+  button?.addEventListener('click', () => {
+    if (loadProgress().lessons[id]) {
+      unmarkLesson(id);
+      showToast({ tone: 'info', message: 'Đã bỏ đánh dấu bài học.' });
+    } else {
+      markLesson(id);
+      showToast({ tone: 'success', message: 'Đã đánh dấu bài học là đã học.' });
+    }
+    render();
+  });
+  // Bấm "Học bài tiếp theo" thì coi như đã học xong bài hiện tại.
+  document.querySelector('[data-next-lesson]')?.addEventListener('click', () => {
+    if (!loadProgress().lessons[id]) markLesson(id);
+  });
+  render();
+</script>

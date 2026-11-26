@@ -1,0 +1,344 @@
+---
+import {
+  ArrowCounterClockwiseIcon,
+  CheckCircleIcon,
+  KeyIcon,
+  LinkSimpleIcon,
+  PlayIcon,
+} from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Accordion from '../../components/ui/Accordion.astro';
+import Button from '../../components/ui/Button.astro';
+import Callout from '../../components/ui/Callout.astro';
+import CodeBlock from '../../components/ui/CodeBlock.astro';
+import Skeleton from '../../components/ui/Skeleton.astro';
+import { schemaSql, SQL_DATABASES, SQL_EXERCISES, type SqlDatabase } from '../../data/sql';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return SQL_DATABASES.map((db) => ({ params: { db: db.id }, props: { db } }));
+}
+
+const { db } = Astro.props as { db: SqlDatabase };
+const exercises = SQL_EXERCISES.filter((e) => e.db === db.id);
+const config = JSON.stringify({
+  db: db.id,
+  schema: schemaSql(db),
+  exercises: exercises.map((e) => ({
+    id: e.id,
+    solution: e.solution,
+    check: e.check,
+    ordered: e.ordered,
+  })),
+});
+const firstTable = db.tables[0]!.name;
+const LEVEL_TEXT = { 1: 'Cơ bản', 2: 'Vận dụng', 3: 'Nâng cao' } as const;
+---
+
+<BaseLayout
+  title={`SQL: ${db.title}`}
+  description={`${db.summary} Viết và chạy SQL ngay trên trình duyệt, ${exercises.length} bài tập có chấm tự động.`}
+>
+  <div
+    class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400"
+    data-sql-lab={config}
+  >
+    <PageHeader
+      title={db.title}
+      lead={db.summary}
+      crumbs={[{ label: 'Phòng SQL', href: '/sql' }]}
+    />
+
+    <section aria-labelledby="so-do" class="flex flex-col gap-200">
+      <h2 id="so-do" class="heading-5 text-text-primary">
+        Sơ đồ bảng
+      </h2>
+      <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+        {db.tables.map((t) => (
+          <li class="flex flex-col gap-100 rounded-16 border border-border-primary bg-surface-primary p-200">
+            <p class="title-3 text-text-primary">
+              <span class="font-mono">{t.name}</span>{' '}
+              <span class="body-6 text-text-tertiary">
+                ({t.label}, {t.rows.length} dòng)
+              </span>
+            </p>
+            <ul class="flex flex-col gap-25">
+              {t.columns.map((c) => (
+                <li class="body-6 flex flex-wrap items-center gap-50 text-text-secondary">
+                  <span class="font-mono text-text-primary">{c.name}</span>
+                  <span class="caption-5 text-text-tertiary">{c.type}</span>
+                  {c.pk && (
+                    <span class="caption-3 inline-flex items-center gap-25 text-text-warning">
+                      <KeyIcon size={14} aria-hidden="true" />
+                      khóa chính
+                    </span>
+                  )}
+                  {c.ref && (
+                    <span class="caption-3 inline-flex items-center gap-25 text-text-info">
+                      <LinkSimpleIcon size={14} aria-hidden="true" />
+                      khóa ngoài tới {c.ref}
+                    </span>
+                  )}
+                  {c.note && <span class="caption-5 text-text-tertiary">{c.note}</span>}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="viet-sql" class="flex flex-col gap-200">
+      <div class="flex flex-wrap items-end justify-between gap-200">
+        <div class="flex flex-col gap-50">
+          <h2 id="viet-sql" class="heading-5 text-text-primary">
+            Viết và chạy SQL
+          </h2>
+          <p class="body-6 text-text-secondary" data-sql-current>
+            Đang thử tự do. Chọn một bài bên dưới để được chấm.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-100">
+          <Button data-sql-run>
+            <PlayIcon size={20} aria-hidden="true" />
+            Chạy
+          </Button>
+          <Button variant="secondary" data-sql-check disabled>
+            <CheckCircleIcon size={20} aria-hidden="true" />
+            Kiểm tra bài
+          </Button>
+          <Button variant="secondary" data-sql-reset>
+            <ArrowCounterClockwiseIcon size={20} aria-hidden="true" />
+            Khôi phục cơ sở dữ liệu
+          </Button>
+        </div>
+      </div>
+      <div
+        class="h-editor-sm overflow-hidden rounded-12 border border-border-action-secondary"
+        data-sql-editor
+        data-initial={`SELECT * FROM ${firstTable};`}
+      >
+        <div class="flex flex-col gap-100 p-200" data-sql-skeleton aria-hidden="true">
+          <Skeleton width="3/4" />
+          <Skeleton width="1/2" />
+        </div>
+      </div>
+      <p class="caption-2 text-text-tertiary">
+        Ctrl+Enter để chạy. Lệnh INSERT, UPDATE, DELETE chỉ sửa bản sao trên máy bạn; bấm Khôi phục
+        để về dữ liệu ban đầu.
+      </p>
+      <p class="body-6 text-text-secondary" data-sql-status role="status" aria-live="polite"></p>
+      <div data-sql-output class="flex flex-col gap-200"></div>
+    </section>
+
+    <section aria-labelledby="bai-tap" class="flex flex-col gap-200">
+      <h2 id="bai-tap" class="heading-5 text-text-primary">
+        Bài tập ({exercises.length})
+      </h2>
+      <ol class="grid grid-cols-1 gap-200 lg:grid-cols-2">
+        {exercises.map((e, i) => (
+          <li
+            class="flex flex-col gap-100 rounded-16 border border-border-primary bg-surface-primary p-200"
+            data-sql-exercise={e.id}
+          >
+            <div class="flex flex-wrap items-center justify-between gap-100">
+              <p class="title-3 text-text-primary">
+                {i + 1}. {e.title}
+              </p>
+              <span class="caption-4 text-text-tertiary">{LEVEL_TEXT[e.level]}</span>
+            </div>
+            <p class="body-6 text-text-secondary">{e.prompt}</p>
+            <div class="flex flex-wrap items-center gap-100">
+              <Button variant="secondary" size="sm" data-sql-pick={e.id}>
+                Làm bài này
+              </Button>
+              <span
+                class="caption-3 hidden items-center gap-25 text-text-success"
+                data-sql-done={e.id}
+              >
+                <CheckCircleIcon size={14} aria-hidden="true" />
+                Đã làm đúng
+              </span>
+            </div>
+            <Accordion title="Xem lời giải">
+              <CodeBlock code={e.solution} lang="sql" lineNumbers={false} />
+            </Accordion>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <Callout kind="luu-y" title="SQLite trên web và MySQL trong sách">
+      <p>
+        Phòng thực hành dùng SQLite chạy trên trình duyệt. SELECT, WHERE, ORDER BY, GROUP BY,
+        HAVING, JOIN, truy vấn con giống MySQL. Khác biệt hay gặp: khóa tự tăng (MySQL dùng
+        AUTO_INCREMENT, SQLite dùng INTEGER PRIMARY KEY), kiểu dữ liệu linh hoạt hơn ở SQLite, so
+        sánh chuỗi ở MySQL thường không phân biệt hoa thường còn SQLite thì có.
+      </p>
+    </Callout>
+  </div>
+</BaseLayout>
+
+<script>
+  import { createEditor } from '../../lib/editor';
+  import { markSql, loadProgress } from '../../lib/progress';
+  import type { ResultSet } from '../../lib/sql/compare';
+  import { sqlRequest } from '../../lib/sql/runner';
+  import { readStorage, writeStorage } from '../../lib/storage';
+  import { showToast } from '../../lib/toast';
+
+  type Exercise = { id: string; solution: string; check?: string; ordered?: boolean };
+  const root = document.querySelector<HTMLElement>('[data-sql-lab]');
+  if (root) {
+    const config = JSON.parse(root.dataset.sqlLab ?? '{}') as {
+      db: string;
+      schema: string;
+      exercises: Exercise[];
+    };
+    const host = root.querySelector<HTMLElement>('[data-sql-editor]')!;
+    const status = root.querySelector<HTMLElement>('[data-sql-status]')!;
+    const output = root.querySelector<HTMLElement>('[data-sql-output]')!;
+    const current = root.querySelector<HTMLElement>('[data-sql-current]')!;
+    const checkButton = root.querySelector<HTMLButtonElement>('[data-sql-check]')!;
+    let exercise: Exercise | null = null;
+    const keyFor = () => `sql:${config.db}:${exercise?.id ?? 'tu-do'}`;
+
+    const editor = createEditor({
+      parent: host,
+      doc: readStorage(keyFor()) ?? host.dataset.initial ?? '',
+      lang: 'sql',
+      label: 'Ô soạn câu lệnh SQL',
+      onChange: (value) => writeStorage(keyFor(), value),
+      onRun: () => void run(),
+    });
+    host.querySelector('[data-sql-skeleton]')?.remove();
+
+    const el = <K extends keyof HTMLElementTagNameMap>(
+      tag: K,
+      className: string,
+      text?: string,
+    ) => {
+      const node = document.createElement(tag);
+      node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+
+    function table(rs: ResultSet, caption: string) {
+      const wrap = el('div', 'overflow-x-auto rounded-12 border border-border-primary');
+      const t = el('table', 'w-full min-w-max text-left');
+      t.append(el('caption', 'caption-2 px-200 pt-100 text-left text-text-tertiary', caption));
+      const head = el('tr', 'bg-surface-primary-subtle');
+      rs.columns.forEach((c) => {
+        const th = el('th', 'title-5 px-200 py-75 font-mono text-text-primary', c);
+        th.scope = 'col';
+        head.append(th);
+      });
+      const thead = el('thead', '');
+      thead.append(head);
+      const tbody = el('tbody', '');
+      rs.values.slice(0, 200).forEach((row) => {
+        const tr = el('tr', 'even:bg-surface-primary-subtle');
+        row.forEach((v) =>
+          tr.append(
+            el(
+              'td',
+              'body-6 px-200 py-75 font-mono text-text-secondary',
+              v === null ? 'NULL' : String(v),
+            ),
+          ),
+        );
+        tbody.append(tr);
+      });
+      t.append(thead, tbody);
+      wrap.append(t);
+      return wrap;
+    }
+
+    async function run() {
+      status.textContent = 'Đang chạy…';
+      output.replaceChildren();
+      const res = await sqlRequest({
+        type: 'exec',
+        db: config.db,
+        schema: config.schema,
+        sql: editor.getValue(),
+      });
+      if (res.type === 'error') {
+        status.textContent = `Lỗi: ${res.message}`;
+        return;
+      }
+      if (res.type !== 'exec') return;
+      if (res.results.length === 0)
+        status.textContent = `Chạy xong. Số dòng bị thay đổi: ${res.changes}.`;
+      else status.textContent = `Chạy xong, ${res.results.length} bảng kết quả.`;
+      res.results.forEach((rs, i) => {
+        const more =
+          rs.values.length > 200
+            ? ` (hiện 200/${rs.values.length} dòng)`
+            : ` (${rs.values.length} dòng)`;
+        output.append(table(rs, `Kết quả ${i + 1}${more}`));
+      });
+    }
+
+    function pick(id: string) {
+      exercise = config.exercises.find((e) => e.id === id) ?? null;
+      if (!exercise) return;
+      const box = root!.querySelector(`[data-sql-exercise="${id}"]`);
+      const title = box?.querySelector('.title-3')?.textContent?.trim() ?? '';
+      current.textContent = `Đang làm: ${title}`;
+      checkButton.disabled = false;
+      editor.setValue(readStorage(keyFor()) ?? '');
+      editor.focus();
+      host.scrollIntoView({
+        block: 'center',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      });
+    }
+
+    function paintDone() {
+      const done = loadProgress().sql;
+      root!.querySelectorAll<HTMLElement>('[data-sql-done]').forEach((el) => {
+        if (done[`${config.db}/${el.dataset.sqlDone}`])
+          el.classList.replace('hidden', 'inline-flex');
+      });
+    }
+
+    root.querySelector('[data-sql-run]')?.addEventListener('click', () => void run());
+    root
+      .querySelectorAll<HTMLButtonElement>('[data-sql-pick]')
+      .forEach((b) => b.addEventListener('click', () => pick(b.dataset.sqlPick ?? '')));
+    checkButton.addEventListener('click', async () => {
+      if (!exercise) return;
+      status.textContent = 'Đang chấm…';
+      const res = await sqlRequest({
+        type: 'check',
+        schema: config.schema,
+        user: editor.getValue(),
+        solution: exercise.solution,
+        check: exercise.check,
+        ordered: exercise.ordered,
+      });
+      if (res.type === 'error') {
+        status.textContent = `Lỗi: ${res.message}`;
+        return;
+      }
+      if (res.type !== 'check') return;
+      status.textContent = res.pass ? `Đúng. ${res.reason}` : `Chưa đúng. ${res.reason}`;
+      if (res.pass) {
+        markSql(`${config.db}/${exercise.id}`);
+        paintDone();
+        showToast({ tone: 'success', message: 'Bài SQL đúng. Đã lưu vào tiến độ của bạn.' });
+      } else if (res.expected) {
+        output.replaceChildren(table(res.expected, 'Kết quả cần có'));
+      }
+    });
+    root.querySelector('[data-sql-reset]')?.addEventListener('click', async () => {
+      const res = await sqlRequest({ type: 'reset', db: config.db, schema: config.schema });
+      status.textContent = res.ok
+        ? 'Đã khôi phục cơ sở dữ liệu về dữ liệu ban đầu.'
+        : 'Không khôi phục được. Tải lại trang để thử lại.';
+    });
+    paintDone();
+  }
+</script>

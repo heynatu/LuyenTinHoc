@@ -1,0 +1,858 @@
+---
+/**
+ * Hệ thống thiết kế (mục 3.12): tương đương khung Foundations trong Figma.
+ * Mẫu màu đọc thẳng từ biến CSS nên đổi token là trang tự cập nhật; nhãn hex lấy từ
+ * tokens.generated.json, sinh lại ở mỗi lần build nên luôn khớp.
+ */
+import {
+  ArrowClockwiseIcon,
+  FunnelIcon,
+  MagnifyingGlassIcon,
+  PlayIcon,
+  QuestionIcon,
+} from '@phosphor-icons/react/ssr';
+import ShowcaseSection from '../components/design-system/ShowcaseSection.astro';
+import StateGrid from '../components/design-system/StateGrid.astro';
+import Accordion from '../components/ui/Accordion.astro';
+import Badge from '../components/ui/Badge.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import Button from '../components/ui/Button.astro';
+import Callout from '../components/ui/Callout.astro';
+import Card from '../components/ui/Card.astro';
+import Choice from '../components/ui/Choice.astro';
+import ChoiceGroup from '../components/ui/ChoiceGroup.astro';
+import CodeBlock from '../components/ui/CodeBlock.astro';
+import Dialog from '../components/ui/Dialog.astro';
+import IconButton from '../components/ui/IconButton.astro';
+import Input from '../components/ui/Input.astro';
+import LevelBadge from '../components/ui/LevelBadge.astro';
+import Pagination from '../components/ui/Pagination.astro';
+import ProgressRing from '../components/ui/ProgressRing.astro';
+import PseudoBlock from '../components/ui/PseudoBlock.astro';
+import {
+  BUTTON_VARIANT_LABELS,
+  BUTTON_VARIANTS,
+  FIELD_STATE_LABELS,
+  FIELD_STATES,
+  STATE_LABELS,
+  TONES,
+  VISUAL_STATES,
+  type IconButtonVariant,
+} from '../components/ui/recipes';
+import Select from '../components/ui/Select.astro';
+import Skeleton from '../components/ui/Skeleton.astro';
+import SourceBadge from '../components/ui/SourceBadge.astro';
+import StateView from '../components/ui/StateView.astro';
+import Stepper from '../components/ui/Stepper.astro';
+import TabPanel from '../components/ui/TabPanel.astro';
+import Tabs from '../components/ui/Tabs.astro';
+import Tag from '../components/ui/Tag.astro';
+import Textarea from '../components/ui/Textarea.astro';
+import Tooltip from '../components/ui/Tooltip.astro';
+import { GROUP_LABELS, RADIUS, SPACING, TEXT_STYLES } from '../design/foundations';
+import tokens from '../design/tokens.generated.json';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const core = tokens.core as Record<string, Record<string, string>>;
+const system = tokens.system;
+const groups = [...new Set(system.map((t) => t.group))];
+const shadeOrder = (a: string, b: string) => {
+  const n = (s: string) => Number(s.split('-')[0]);
+  return n(a) - n(b) || a.localeCompare(b);
+};
+
+const toc = [
+  ['core-colors', 'Core Colors'],
+  ['color-system', 'Color System'],
+  ['spacing', 'Khoảng cách'],
+  ['radius', 'Bo góc'],
+  ['text-styles', 'Text style'],
+  ['buttons', 'Button'],
+  ['fields', 'Ô nhập'],
+  ['choices', 'Checkbox, Radio, Switch'],
+  ['badges', 'Badge, Tag'],
+  ['cards', 'Card, Callout'],
+  ['code', 'Code, giả mã'],
+  ['interactive', 'Tabs, Accordion, Dialog'],
+  ['feedback', 'Toast, Tooltip'],
+  ['navigation', 'Điều hướng'],
+  ['progress', 'Tiến độ'],
+  ['data-states', 'Đang tải, Trống, Lỗi'],
+] as const;
+
+const ICON_VARIANTS: IconButtonVariant[] = ['ghost', 'secondary', 'primary'];
+const TONE_LABELS = {
+  neutral: 'Trung tính',
+  info: 'Thông tin',
+  success: 'Thành công',
+  warning: 'Cảnh báo',
+  error: 'Lỗi',
+  accent: 'Nhấn',
+} as const;
+
+const pythonSample = `import sys
+
+
+def main():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    a = list(map(int, data[1:1 + n]))
+
+    # Kadane: cur là tổng lớn nhất của đoạn kết thúc tại phần tử đang xét
+    best = cur = a[0]
+    for x in a[1:]:
+        cur = max(x, cur + x)
+        best = max(best, cur)
+
+    sys.stdout.write(str(best) + "\\n")
+
+
+if __name__ == "__main__":
+    main()
+`;
+
+const sqlSample = `-- 5 cuốn sách được mượn nhiều nhất trong năm học
+SELECT s.ten_sach, COUNT(*) AS so_luot_muon
+FROM phieu_muon AS pm
+JOIN sach AS s ON s.ma_sach = pm.ma_sach
+WHERE pm.ngay_muon BETWEEN '2025-09-05' AND '2026-05-31'
+GROUP BY s.ma_sach, s.ten_sach
+ORDER BY so_luot_muon DESC
+LIMIT 5;
+`;
+
+const pseudoSample = `THUẬT TOÁN SắpXếpNổiBọt(A, n)        // chỉ số từ 0
+VỚI i TỪ 0 ĐẾN n - 2 LÀM
+    VỚI j TỪ 0 ĐẾN n - 2 - i LÀM
+        NẾU A[j] > A[j + 1] THÌ
+            ĐỔI CHỖ A[j] VÀ A[j + 1]
+        HẾT NẾU
+    HẾT VỚI
+HẾT VỚI
+`;
+---
+
+<BaseLayout
+  title="Hệ thống thiết kế"
+  description="Token màu, khoảng cách, bo góc, text style và mọi component của Tư Duy Tin ở mọi trạng thái."
+  noindex
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-800 px-200 pt-600 md:px-400">
+    <header class="flex max-w-hero flex-col gap-200">
+      <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Hệ thống thiết kế' }]} />
+      <h1 class="heading-4 md:heading-3 text-text-primary">Hệ thống thiết kế</h1>
+      <p class="body-3 text-text-secondary">
+        Mọi màu, khoảng cách, bo góc và chữ trên website lấy từ các token dưới đây. Mẫu màu đọc
+        thẳng từ biến CSS, nên khi đổi token và build lại, trang này tự cập nhật. Đổi giao diện sáng
+        tối bằng nút trên thanh điều hướng để xem component ở cả hai mode.
+      </p>
+      <nav aria-label="Mục lục hệ thống thiết kế">
+        <ul class="flex flex-wrap gap-75">
+          {toc.map(([id, label]) => (
+            <li>
+              <Tag href={`#${id}`}>{label}</Tag>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+
+    <!-- ===================================================== Core Colors -->
+    <ShowcaseSection
+      id="core-colors"
+      title="Core Colors"
+      description="Bảng màu thô sinh từ màu thương hiệu theo thang OKLCH. Component không dùng trực tiếp các màu này, chỉ dùng token Color System."
+    >
+      <div class="flex flex-col gap-400">
+        {Object.entries(core).map(([palette, shades]) => (
+          <div class="flex flex-col gap-100">
+            <h3 class="title-3 text-text-primary">{palette}</h3>
+            <ul class="flex flex-wrap gap-100">
+              {Object.keys(shades)
+                .sort(shadeOrder)
+                .map((shade) => (
+                  <li class="flex w-700 flex-col gap-50">
+                    <span
+                      class="block h-700 w-700 rounded-8 border border-border-primary"
+                      style={`background-color: var(--core-${palette}-${shade})`}
+                    />
+                    <span class="caption-3 text-text-primary">{shade}</span>
+                    <span class="caption-5 font-mono text-text-tertiary">{shades[shade]}</span>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Color System -->
+    <ShowcaseSection
+      id="color-system"
+      title="Color System"
+      description="Token ngữ nghĩa, mỗi token trỏ tới một màu lõi ở mỗi mode. Cột Sáng và Tối đặt mode riêng cho từng cột, nên hai cột luôn hiển thị đúng mode của mình."
+    >
+      <div class="flex flex-col gap-500">
+        {groups.map((group) => (
+          <div class="flex flex-col gap-100">
+            <h3 class="title-2 text-text-primary">{GROUP_LABELS[group] ?? group}</h3>
+            <div class="grid grid-cols-1 gap-200 lg:grid-cols-2">
+              {(['light', 'dark'] as const).map((mode) => (
+                <div
+                  data-theme={mode}
+                  class="flex flex-col gap-50 rounded-16 border border-border-primary bg-surface-primary p-200"
+                >
+                  <p class="caption-3 pb-50 text-text-tertiary">
+                    {mode === 'light' ? 'Sáng' : 'Tối'}
+                  </p>
+                  <ul class="flex flex-col gap-50">
+                    {system
+                      .filter((t) => t.group === group)
+                      .map((t) => (
+                        <li class="flex items-center gap-100">
+                          <span
+                            class="block size-500 shrink-0 rounded-8 border border-border-primary"
+                            style={`background-color: var(--${t.name})`}
+                          />
+                          <span class="flex min-w-0 flex-col">
+                            <span class="body-5 truncate font-mono text-text-primary">
+                              {t.name}
+                            </span>
+                            <span class="caption-5 truncate font-mono text-text-tertiary">
+                              {mode === 'light'
+                                ? `${t.light} · ${t.lightHex}`
+                                : `${t.dark} · ${t.darkHex}`}
+                            </span>
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <Callout kind="luu-y" title="Token mở rộng">
+        <p>
+          Ngoài danh sách gốc có thêm {Object.keys(tokens.extensions).join(', ')}. Lý do ghi trong
+          src/design/color-system.json.
+        </p>
+      </Callout>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Spacing, radius -->
+    <ShowcaseSection
+      id="spacing"
+      title="Khoảng cách"
+      description="Chỉ dùng các bậc này cho padding, gap, margin. Lớp Tailwind tương ứng: p-200 là 16px."
+    >
+      <ul class="flex flex-col gap-100">
+        {SPACING.map(([token, px]) => (
+          <li class="flex items-center gap-200">
+            <span class="body-5 w-900 shrink-0 font-mono text-text-primary">spacing-{token}</span>
+            <span class="caption-5 w-500 shrink-0 font-mono text-text-tertiary">{px}px</span>
+            <span
+              class="block h-200 rounded-2 bg-action-primary"
+              style={`width: var(--spacing-${token})`}
+            />
+          </li>
+        ))}
+      </ul>
+    </ShowcaseSection>
+
+    <ShowcaseSection
+      id="radius"
+      title="Bo góc"
+      description="Khi một khối nằm trong khối khác cách nhau dưới 32px: bo trong = bo ngoài trừ khoảng cách (chỉ khi kết quả lớn hơn 2)."
+    >
+      <ul class="flex flex-wrap gap-300">
+        {RADIUS.map(([token, value]) => (
+          <li class="flex flex-col items-start gap-75">
+            <span
+              class="block size-800 border border-border-action-secondary bg-surface-secondary"
+              style={`border-radius: var(--radius-${token})`}
+            />
+            <span class="body-5 font-mono text-text-primary">radius-{token}</span>
+            <span class="caption-5 font-mono text-text-tertiary">{value}</span>
+          </li>
+        ))}
+      </ul>
+      <div class="flex max-w-narrow flex-col gap-75 rounded-16 border border-border-primary bg-surface-primary-subtle p-75">
+        <div class="body-6 rounded-8 bg-surface-secondary p-200 text-text-secondary">
+          Ví dụ bo lồng nhau: khung ngoài bo 16, padding 8, nên khối bên trong bo 16 trừ 8 bằng 8.
+        </div>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Text styles -->
+    <ShowcaseSection
+      id="text-styles"
+      title="Text style"
+      description="Mọi đoạn chữ dùng một style có tên. Font Manrope; code và số liệu dùng Geist Mono. Không chữ nghiêng, không đậm hơn Bold."
+    >
+      <div class="flex flex-col gap-500">
+        {TEXT_STYLES.map(({ group, items }) => (
+          <div class="flex flex-col gap-200">
+            <h3 class="title-2 text-text-primary">{group}</h3>
+            <ul class="flex flex-col gap-200">
+              {items.map(([name, size, weight]) => (
+                <li class="flex flex-col gap-50 md:flex-row md:items-baseline md:gap-300">
+                  <span class="caption-4 w-900 shrink-0 font-mono text-text-tertiary">
+                    {name}
+                    <span class="block caption-5">
+                      {size} · {weight}
+                    </span>
+                  </span>
+                  <span class:list={[name, 'min-w-0 text-text-primary']}>
+                    Thuật toán sắp xếp nổi bọt
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Buttons -->
+    <ShowcaseSection
+      id="buttons"
+      title="Button"
+      description="5 loại × 5 trạng thái. Nút chính dùng button-md, padding dọc 8, ngang 12; vùng bấm tối thiểu 44px. Focus có vòng 2px bên ngoài."
+    >
+      <StateGrid
+        label="Button theo loại và trạng thái"
+        columns={VISUAL_STATES.map((s) => STATE_LABELS[s])}
+      >
+        {BUTTON_VARIANTS.map((variant) => (
+          <tr>
+            <th scope="row" class="body-5 px-200 py-200 text-left text-text-secondary">
+              {BUTTON_VARIANT_LABELS[variant]}
+            </th>
+            {VISUAL_STATES.map((state) => (
+              <td class="px-200 py-200">
+                <Button variant={variant} state={state} tabindex="-1">
+                  Chạy chương trình
+                </Button>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </StateGrid>
+      <div class="flex flex-wrap items-center gap-200">
+        <Button size="lg">Bắt đầu lộ trình</Button>
+        <Button size="md">Chấm thử</Button>
+        <Button size="sm" variant="secondary">
+          Tải bộ test
+        </Button>
+        <Button size="xsm" variant="tertiary">
+          Xem gợi ý
+        </Button>
+        <Button variant="primary">
+          <PlayIcon size={20} aria-hidden="true" />
+          Chạy chương trình
+        </Button>
+        <Button href="/gioi-thieu" variant="secondary">
+          Đọc giới thiệu
+        </Button>
+      </div>
+
+      <h3 class="title-2 text-text-primary">IconButton</h3>
+      <StateGrid
+        label="IconButton theo loại và trạng thái"
+        columns={VISUAL_STATES.map((s) => STATE_LABELS[s])}
+      >
+        {ICON_VARIANTS.map((variant) => (
+          <tr>
+            <th scope="row" class="body-5 px-200 py-200 text-left text-text-secondary">
+              {variant}
+            </th>
+            {VISUAL_STATES.map((state) => (
+              <td class="px-200 py-200">
+                <IconButton label="Đặt lại dữ liệu" variant={variant} state={state} tabindex="-1">
+                  <ArrowClockwiseIcon size={20} aria-hidden="true" />
+                </IconButton>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </StateGrid>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Fields -->
+    <ShowcaseSection
+      id="fields"
+      title="Ô nhập"
+      description="Default, Hover, Focus, Filled, Error, Disabled. Lỗi có icon và chữ, gắn aria-invalid và aria-describedby."
+    >
+      <div class="grid grid-cols-1 gap-300 md:grid-cols-2 lg:grid-cols-3">
+        {FIELD_STATES.map((state) => (
+          <Input
+            id={`demo-input-${state}`}
+            label={`Tên file dữ liệu vào (${FIELD_STATE_LABELS[state]})`}
+            placeholder="Ví dụ: BAI1.INP"
+            value={state === 'filled' || state === 'error' ? 'bai1.inp' : undefined}
+            hint="Gõ đúng tên file như trong đề, kể cả chữ hoa."
+            error={
+              state === 'error'
+                ? 'Tên file phải là BAI1.INP (chữ hoa), không phải bai1.inp.'
+                : undefined
+            }
+            state={state}
+            tabindex={state === 'default' ? undefined : '-1'}
+          />
+        ))}
+      </div>
+      <div class="grid grid-cols-1 gap-300 md:grid-cols-2">
+        <Textarea
+          id="demo-stdin"
+          label="Dữ liệu vào"
+          hint="Mỗi dòng của ô này là một dòng của file BAI1.INP."
+          mono
+          rows={4}
+        >{`5
+-2 3 -1 4 -6`}</Textarea>
+        <div class="flex flex-col gap-300">
+          <Select
+            id="demo-select"
+            label="Kỳ thi bám theo"
+            value="hsg-gia-lai"
+            options={[
+              { value: 'hsg-gia-lai', label: 'HSG tỉnh Gia Lai' },
+              { value: 'hsg-binh-dinh', label: 'HSG tỉnh Bình Định (lưu trữ)' },
+              { value: 'tin-hoc-tre', label: 'Hội thi Tin học trẻ' },
+            ]}
+          />
+          <Select
+            id="demo-select-error"
+            label="Cấp độ"
+            options={[
+              { value: '', label: 'Chọn cấp độ' },
+              { value: '1', label: 'Cấp 1: Làm quen' },
+              { value: '3', label: 'Cấp 3: Vận dụng' },
+            ]}
+            error="Chọn một cấp độ để lọc kho đề."
+          />
+        </div>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Choices -->
+    <ShowcaseSection
+      id="choices"
+      title="Checkbox, Radio, Switch"
+      description="Dùng input gốc của trình duyệt: Space để bật tắt, mũi tên để chọn trong nhóm radio. Nhãn bấm được, vùng bấm tối thiểu 44px."
+    >
+      <div class="grid grid-cols-1 gap-400 md:grid-cols-3">
+        <div class="flex flex-col">
+          <h3 class="title-3 pb-100 text-text-primary">Checkbox</h3>
+          <Choice id="cb-1" label="Chưa chọn" />
+          <Choice id="cb-2" label="Đã chọn" checked />
+          <Choice id="cb-3" label="Di chuột" state="hover" tabindex="-1" />
+          <Choice id="cb-4" label="Focus" state="focus" tabindex="-1" />
+          <Choice id="cb-5" label="Vô hiệu" disabled />
+          <Choice id="cb-6" label="Vô hiệu, đã chọn" disabled checked />
+          <Choice id="cb-7" label="Lỗi" invalid description="Cần đồng ý trước khi nộp bài." />
+        </div>
+        <div class="flex flex-col">
+          <ChoiceGroup
+            id="demo-radio"
+            legend="Kiểu so sánh kết quả"
+            hint="Mặc định bỏ qua khoảng trắng thừa, giống Themis."
+          >
+            <Choice
+              id="rd-1"
+              kind="radio"
+              name="compare"
+              value="tokens"
+              label="Theo từng số, từng từ"
+              checked
+            />
+            <Choice id="rd-2" kind="radio" name="compare" value="lines" label="Đúng từng dòng" />
+            <Choice
+              id="rd-3"
+              kind="radio"
+              name="compare"
+              value="float"
+              label="Số thực, sai số 0.000001"
+            />
+            <Choice
+              id="rd-4"
+              kind="radio"
+              name="compare"
+              value="checker"
+              label="Dùng checker (sắp có)"
+              disabled
+            />
+          </ChoiceGroup>
+        </div>
+        <div class="flex flex-col">
+          <h3 class="title-3 pb-100 text-text-primary">Switch</h3>
+          <Choice id="sw-1" kind="switch" label="Hiện số dòng" />
+          <Choice
+            id="sw-2"
+            kind="switch"
+            label="Đọc ghi file như phòng thi"
+            checked
+            description="Chương trình đọc BAI1.INP, ghi BAI1.OUT."
+          />
+          <Choice id="sw-3" kind="switch" label="Focus" state="focus" tabindex="-1" />
+          <Choice id="sw-4" kind="switch" label="Vô hiệu" disabled />
+          <Choice id="sw-5" kind="switch" label="Vô hiệu, đang bật" disabled checked />
+        </div>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Badges, tags -->
+    <ShowcaseSection
+      id="badges"
+      title="Badge, Tag"
+      description="Badge luôn có chữ; icon và số đi kèm để không phụ thuộc màu. Tag dùng cho kỳ thi và chủ đề."
+    >
+      <div class="flex flex-col gap-200">
+        <div class="flex flex-wrap gap-100">
+          {([1, 2, 3, 4, 5] as const).map((level) => (
+            <LevelBadge level={level} />
+          ))}
+        </div>
+        <div class="flex flex-wrap gap-100">
+          <SourceBadge kind="official" />
+          <SourceBadge kind="adapted" />
+          <SourceBadge kind="original" />
+        </div>
+        <div class="flex flex-wrap gap-100">
+          {TONES.map((tone) => (
+            <Badge tone={tone}>{TONE_LABELS[tone]}</Badge>
+          ))}
+        </div>
+        <div class="flex flex-wrap gap-100">
+          <Tag>HSG tỉnh Gia Lai</Tag>
+          <Tag>Tin học trẻ, bảng B</Tag>
+          <Tag href="#badges">Mảng cộng dồn</Tag>
+          <Tag href="#badges">Hai con trỏ</Tag>
+          <Tag href="#badges">Quy hoạch động</Tag>
+        </div>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Cards, callouts -->
+    <ShowcaseSection
+      id="cards"
+      title="Card, Callout"
+      description="Card bo 16, padding 24. Callout có viền đủ bốn cạnh, icon và tiêu đề chữ."
+    >
+      <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 lg:grid-cols-3">
+        {(
+          [
+            ['default', 'Mặc định'],
+            ['hover', 'Di chuột'],
+            ['focus', 'Focus'],
+            ['selected', 'Đang chọn'],
+          ] as const
+        ).map(([state, label]) => (
+          <Card as="li" state={state}>
+            <div class="flex flex-wrap gap-75">
+              <LevelBadge level={3} />
+              <SourceBadge kind="original" />
+            </div>
+            <p class="title-2 text-text-primary">Tổng đoạn con lớn nhất</p>
+            <p class="body-6 text-text-secondary">
+              Đề luyện theo cấu trúc HSG tỉnh THPT. Trạng thái: {label}.
+            </p>
+          </Card>
+        ))}
+        <li class="flex">
+          <Card href="#cards" class="w-full">
+            <p class="title-2 text-text-primary">Card là link</p>
+            <p class="body-6 text-text-secondary">Di chuột để đổi nền, nhấn để lún 1px.</p>
+          </Card>
+        </li>
+      </ul>
+      <div class="grid grid-cols-1 gap-200 md:grid-cols-2">
+        <Callout kind="meo" title="Đọc nhanh dữ liệu lớn">
+          <p>
+            Với 100 000 dòng trở lên, đọc một lần bằng sys.stdin.buffer.read().split() nhanh hơn
+            nhiều so với gọi input() từng dòng.
+          </p>
+        </Callout>
+        <Callout kind="bay" title="round() làm tròn kiểu ngân hàng">
+          <p>
+            Trong Python, round(2.5) bằng 2 và round(3.5) bằng 4. Nếu đề yêu cầu làm tròn lên khi
+            bằng 0.5, dùng Decimal với ROUND_HALF_UP.
+          </p>
+        </Callout>
+        <Callout kind="luu-y">
+          <p>
+            Máy chấm ở nhiều phòng thi dùng Python cũ. Tránh match, math.lcm, itertools.pairwise nếu
+            chưa biết phiên bản.
+          </p>
+        </Callout>
+        <Callout kind="vi-du" title="Chạy tay trên bộ nhỏ">
+          <p>Với dãy -2 3 -1 4 -6, đoạn có tổng lớn nhất là 3 -1 4, tổng bằng 6.</p>
+        </Callout>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Code -->
+    <ShowcaseSection
+      id="code"
+      title="Code, giả mã"
+      description="Tô màu lúc build, có số dòng, tô sáng dòng (nền khác và dấu ở cột số) và nút sao chép. Cuộn ngang nằm trong khung."
+    >
+      <div class="grid grid-cols-1 gap-300 lg:grid-cols-2">
+        <CodeBlock code={pythonSample} lang="python" title="DOANCON.PY" highlight={[10, 11]} />
+        <div class="flex flex-col gap-300">
+          <PseudoBlock code={pseudoSample} title="Sắp xếp nổi bọt" highlight={[4]} />
+          <CodeBlock code={sqlSample} lang="sql" title="muon_nhieu_nhat.sql" />
+        </div>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Interactive -->
+    <ShowcaseSection
+      id="interactive"
+      title="Tabs, Accordion, Dialog"
+      description="Tabs: mũi tên trái phải, Home, End. Accordion dựa trên thẻ details. Dialog dựa trên thẻ dialog: Escape đóng và trả focus về nút đã mở."
+    >
+      <Tabs
+        id="demo-tabs"
+        label="Nội dung bài tập"
+        tabs={[
+          { id: 'de-bai', label: 'Đề bài' },
+          { id: 'goi-y', label: 'Gợi ý' },
+          { id: 'loi-giai', label: 'Lời giải' },
+        ]}
+      >
+        <TabPanel tabs="demo-tabs" id="de-bai" active>
+          <p class="body-6 text-text-secondary">
+            Cho dãy n số nguyên. Tìm đoạn con liên tiếp có tổng lớn nhất và in ra tổng đó.
+          </p>
+        </TabPanel>
+        <TabPanel tabs="demo-tabs" id="goi-y">
+          <p class="body-6 text-text-secondary">
+            Gọi cur là tổng lớn nhất của đoạn kết thúc tại phần tử đang xét. Khi thêm phần tử x, nên
+            nối x vào đoạn cũ hay bắt đầu đoạn mới từ x?
+          </p>
+        </TabPanel>
+        <TabPanel tabs="demo-tabs" id="loi-giai">
+          <p class="body-6 text-text-secondary">
+            Thuật toán Kadane chạy trong O(n): cur bằng max(x, cur + x), đáp án là giá trị lớn nhất
+            của cur.
+          </p>
+        </TabPanel>
+      </Tabs>
+
+      <div class="flex max-w-hero flex-col gap-100">
+        <Accordion title="Website có miễn phí không?" name="faq-demo">
+          <p>Có. Website miễn phí, không cần tài khoản và không thu thập dữ liệu cá nhân.</p>
+        </Accordion>
+        <Accordion title="Tiến độ học được lưu ở đâu?" name="faq-demo">
+          <p>Trong bộ nhớ của trình duyệt trên chính máy bạn. Chúng tôi không đọc được.</p>
+        </Accordion>
+        <Accordion title="Chấm thử có giống Themis không?" name="faq-demo">
+          <p>
+            Cách so sánh kết quả giống Themis. Thời gian chạy trên trình duyệt chỉ là ước lượng.
+          </p>
+        </Accordion>
+      </div>
+
+      <div>
+        <Button variant="secondary" data-dialog-open="demo-dialog">
+          Nộp bài thi thử
+        </Button>
+      </div>
+      <Dialog
+        id="demo-dialog"
+        title="Nộp bài thi thử?"
+        description="Còn 37 phút 12 giây. Sau khi nộp, bạn không sửa được code nữa."
+      >
+        <p>Bài 3 và bài 4 chưa chạy thử lần nào.</p>
+        <Fragment slot="footer">
+          <Button variant="secondary" data-dialog-close>
+            Làm tiếp
+          </Button>
+          <Button data-dialog-close data-demo-submit>
+            Nộp bài
+          </Button>
+        </Fragment>
+      </Dialog>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Feedback -->
+    <ShowcaseSection
+      id="feedback"
+      title="Toast, Tooltip"
+      description="Toast tự đóng sau 5 giây (lỗi 8 giây), dừng đếm khi di chuột hoặc focus. Tooltip hiện khi di chuột hoặc focus, Escape để ẩn."
+    >
+      <div class="flex flex-wrap gap-100">
+        <Button variant="secondary" size="sm" data-demo-toast="success">
+          Toast thành công
+        </Button>
+        <Button variant="secondary" size="sm" data-demo-toast="info">
+          Toast thông tin
+        </Button>
+        <Button variant="secondary" size="sm" data-demo-toast="warning">
+          Toast cảnh báo
+        </Button>
+        <Button variant="secondary" size="sm" data-demo-toast="error">
+          Toast lỗi
+        </Button>
+      </div>
+      <div class="flex flex-wrap items-center gap-200">
+        <Tooltip id="tip-reset" text="Đặt lại dữ liệu vào như ban đầu">
+          <IconButton label="Đặt lại dữ liệu">
+            <ArrowClockwiseIcon size={20} aria-hidden="true" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip id="tip-filter" text="Lọc theo kỳ thi, cấp độ, chủ đề">
+          <IconButton label="Bộ lọc" variant="secondary">
+            <FunnelIcon size={20} aria-hidden="true" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip id="tip-help" text="Phím tắt: Ctrl+Enter để chạy">
+          <IconButton label="Trợ giúp">
+            <QuestionIcon size={20} aria-hidden="true" />
+          </IconButton>
+        </Tooltip>
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Navigation -->
+    <ShowcaseSection
+      id="navigation"
+      title="Điều hướng"
+      description="Breadcrumb, Pagination và Stepper. Trang hiện tại, bước hiện tại đều có aria-current."
+    >
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/' },
+          { label: 'Luyện đề', href: '#navigation' },
+          { label: 'THPT', href: '#navigation' },
+          { label: 'Tổng đoạn con lớn nhất' },
+        ]}
+      />
+      <div class="flex flex-col gap-200">
+        <Pagination
+          current={1}
+          total={3}
+          hrefPattern="/thiet-ke?trang={page}#navigation"
+          label="Phân trang ví dụ 1"
+        />
+        <Pagination
+          current={6}
+          total={12}
+          hrefPattern="/thiet-ke?trang={page}#navigation"
+          label="Phân trang ví dụ 2"
+        />
+        <Pagination
+          current={12}
+          total={12}
+          hrefPattern="/thiet-ke?trang={page}#navigation"
+          label="Phân trang ví dụ 3"
+        />
+      </div>
+      <Stepper
+        label="Cách học trên Tư Duy Tin"
+        steps={[
+          { title: 'Chọn cấp học', description: 'Tiểu học, THCS hoặc THPT', status: 'done' },
+          {
+            title: 'Học và mô phỏng',
+            description: 'Xem thuật toán chạy từng bước',
+            status: 'current',
+          },
+          {
+            title: 'Luyện đề và thi thử',
+            description: 'Chấm thử như phòng thi',
+            status: 'upcoming',
+          },
+        ]}
+      />
+    </ShowcaseSection>
+
+    <!-- ===================================================== Progress -->
+    <ShowcaseSection
+      id="progress"
+      title="Tiến độ"
+      description="Vòng tiến độ có role progressbar và giá trị cho trình đọc màn hình."
+    >
+      <div class="flex flex-wrap items-center gap-300">
+        <ProgressRing value={0} label="Chủ đề Mảng: chưa làm" />
+        <ProgressRing value={35} label="Chủ đề Mảng: 35% số bài" />
+        <ProgressRing value={100} label="Chủ đề Mảng: xong" />
+        <ProgressRing value={62} label="Bài thi thử: 62%" size="sm" />
+      </div>
+    </ShowcaseSection>
+
+    <!-- ===================================================== Data states -->
+    <ShowcaseSection
+      id="data-states"
+      title="Đang tải, Trống, Lỗi"
+      description="Mọi khối dữ liệu có ba trạng thái này. Đang tải dùng khối giữ chỗ giống bố cục thật, không dùng vòng xoay."
+    >
+      <div class="grid grid-cols-1 gap-300 lg:grid-cols-3">
+        <div aria-busy="true" aria-label="Đang tải danh sách đề" class="flex flex-col gap-200">
+          {[1, 2].map(() => (
+            <div class="flex flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle p-300">
+              <div class="flex gap-75">
+                <Skeleton shape="pill" width="1/3" />
+                <Skeleton shape="pill" width="1/4" />
+              </div>
+              <Skeleton width="3/4" />
+              <Skeleton width="full" />
+              <Skeleton width="1/2" />
+            </div>
+          ))}
+        </div>
+        <StateView
+          kind="empty"
+          title="Chưa có bài nào khớp bộ lọc"
+          description="Thử bỏ bớt điều kiện, ví dụ chọn Mọi cấp độ hoặc bỏ lọc theo năm."
+          actionLabel="Xóa bộ lọc"
+          actionHref="#data-states"
+        />
+        <StateView
+          kind="error"
+          title="Không tải được bộ test"
+          description="Mạng bị gián đoạn khi tải file tests.json. Kiểm tra kết nối rồi bấm Thử lại."
+          actionLabel="Thử lại"
+          actionId="demo-retry"
+        />
+      </div>
+      <div class="flex items-center gap-100">
+        <span class="inline-flex text-icon-subtle">
+          <MagnifyingGlassIcon size={20} aria-hidden="true" />
+        </span>
+        <p class="body-6 text-text-tertiary">
+          Ô tìm kiếm và trang Tiến độ dùng lại các trạng thái này từ Giai đoạn 6.
+        </p>
+      </div>
+    </ShowcaseSection>
+  </div>
+</BaseLayout>
+
+<script>
+  import { showToast, type ToastTone } from '../lib/toast';
+
+  const MESSAGES: Record<ToastTone, string> = {
+    success: 'Đã lưu code nháp cho bài Tổng đoạn con lớn nhất.',
+    info: 'Đang tải Python lần đầu, có thể mất vài giây.',
+    warning: 'Còn 5 phút. Hãy lưu bài và kiểm tra tên file.',
+    error: 'Chương trình chạy quá 3 giây nên đã được dừng. Kiểm tra điều kiện dừng của vòng lặp.',
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-demo-toast]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const tone = button.dataset.demoToast as ToastTone;
+      showToast({ tone, message: MESSAGES[tone] });
+    });
+  });
+
+  document.querySelector('[data-demo-submit]')?.addEventListener('click', () => {
+    showToast({ tone: 'success', message: 'Đã nộp bài. Kết quả chấm hiện sau vài giây.' });
+  });
+
+  document.getElementById('demo-retry')?.addEventListener('click', () => {
+    showToast({ tone: 'info', message: 'Đang tải lại bộ test.' });
+  });
+</script>

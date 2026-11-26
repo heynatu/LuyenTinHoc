@@ -1,0 +1,18 @@
+dist/
+.astro/
+node_modules/
+public/pyodide/
+public/sqljs/
+playwright-report/
+test-results/
+package-lock.json
+docs/SUPER_PROMPT.md
+src/styles/tokens.css
+src/styles/theme.css
+src/design/tokens.generated.json
+src/generated/
+# File do npm run verify:content sinh, không định dạng tay
+public/judge/
+src/content/problems/*/verify.json
+source-materials/
+demo/

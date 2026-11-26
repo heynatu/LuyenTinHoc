@@ -1,0 +1,31 @@
+---
+/** Vùng hiển thị toast (đặt một lần trong BaseLayout) và mẫu icon cho src/lib/toast.ts. */
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  WarningCircleIcon,
+  WarningIcon,
+  XIcon,
+} from '@phosphor-icons/react/ssr';
+---
+
+<div class="pointer-events-none fixed inset-x-200 bottom-200 z-70 flex flex-col items-stretch gap-75 md:right-400 md:bottom-400 md:left-auto md:w-full md:max-w-narrow">
+  <div id="toast-polite" aria-live="polite" class="flex flex-col gap-75"></div>
+  <div id="toast-assertive" aria-live="assertive" class="flex flex-col gap-75"></div>
+</div>
+
+<template id="toast-icon-success">
+  <CheckCircleIcon size={20} aria-hidden="true" />
+</template>
+<template id="toast-icon-error">
+  <WarningCircleIcon size={20} aria-hidden="true" />
+</template>
+<template id="toast-icon-info">
+  <InfoIcon size={20} aria-hidden="true" />
+</template>
+<template id="toast-icon-warning">
+  <WarningIcon size={20} aria-hidden="true" />
+</template>
+<template id="toast-icon-close">
+  <XIcon size={20} aria-hidden="true" />
+</template>

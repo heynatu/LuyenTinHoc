@@ -1,0 +1,92 @@
+---
+import PageShell from '../layouts/PageShell.astro';
+import { MOCK_EXAMS } from '../data/mock-exams';
+import { isPlaceholder, SITE } from '../site.config';
+
+const emailReady = !isPlaceholder(SITE.contactEmail);
+---
+
+<PageShell
+  title="Dành cho giáo viên"
+  description="Cách dùng Tư Duy Tin trong lớp học và buổi bồi dưỡng học sinh giỏi: gửi link bài, đề thi thử, in đề, tải bộ test Themis, gợi ý tổ chức buổi học."
+  lead="Mọi tính năng đều miễn phí, không cần tài khoản cho giáo viên hay học sinh. Bạn chỉ cần gửi đường dẫn."
+>
+  <h2>Giao bài bằng đường dẫn</h2>
+  <ul>
+    <li>
+      Mỗi bài học, bài luyện đề, câu đố, mô phỏng có một đường dẫn riêng. Gửi đường dẫn qua nhóm lớp
+      là học sinh làm được ngay.
+    </li>
+    <li>
+      Ở <a href="/lap-trinh">Phòng lập trình</a>, nút chia sẻ tạo đường dẫn chứa sẵn đoạn code
+      (người nhận phải bấm Chạy thì code mới chạy).
+    </li>
+    <li>
+      Gợi ý giao một <a href="/thi-thu">đề thi thử</a> cho cả lớp làm cùng giờ, rồi chữa bài theo
+      bảng điểm từng bài mà mỗi học sinh nhận được.
+    </li>
+  </ul>
+
+  <h2>Học sinh nộp kết quả thế nào</h2>
+  <p>
+    Trang không có máy chủ nên không thu bài tự động. Học sinh có thể chụp màn hình bảng kết quả
+    chấm thử, hoặc vào trang <a href="/tien-do">Tiến độ</a> bấm Xuất tiến độ và gửi file JSON cho
+    giáo viên. File chỉ chứa tiến độ trên trang, không có thông tin cá nhân.
+  </p>
+
+  <h2>In đề và tải bộ test</h2>
+  <ul>
+    <li>
+      Trên trang một bài luyện đề, bấm In đề (hoặc Ctrl+P). Bản in chỉ giữ đề bài, ràng buộc và ví
+      dụ, không in ô code và lời giải.
+    </li>
+    <li>
+      Nút Tải bộ test dạng Themis cho file zip theo cấu trúc thư mục mỗi test một thư mục con. Xem{' '}
+      <a href="/cam-nang/tu-cham-bang-themis">Tự chấm bằng Themis</a>.
+    </li>
+  </ul>
+
+  <h2>Gợi ý một buổi bồi dưỡng 90 phút</h2>
+  <ol>
+    <li>
+      <strong>10 phút:</strong> chạy một mô phỏng trên máy chiếu, cho học sinh đoán bước tiếp theo
+      trước khi bấm.
+    </li>
+    <li>
+      <strong>20 phút:</strong> giảng ý tưởng và giả mã, đối chiếu với nhãn [Lx] trong lời giải
+      Python.
+    </li>
+    <li>
+      <strong>45 phút:</strong> học sinh tự làm hai bài trong kho đề, chấm thử, mở gợi ý khi bí.
+    </li>
+    <li>
+      <strong>15 phút:</strong> chữa một bẫy hay gặp liên quan tới bài vừa làm.
+    </li>
+  </ol>
+
+  <h2>Đề thi thử có sẵn</h2>
+  <ul>
+    {MOCK_EXAMS.map((e) => (
+      <li>
+        <a href={`/thi-thu/${e.id}`}>{e.title}</a>: {e.problems.length} bài, {e.minutes} phút.
+      </li>
+    ))}
+  </ul>
+
+  <h2>Đóng góp đề chính thức</h2>
+  <p>
+    Kho đề hiện chỉ có đề luyện biên soạn. Nếu thầy cô có file đề gốc của kỳ thi (kèm đơn vị ra đề,
+    năm học, vòng thi), hãy gửi cho người biên soạn. Đề chính thức sẽ được gắn nhãn và trích nguồn
+    đầy đủ; lời giải được viết mới và phải qua kiểm định như mọi bài khác. Quyền tác giả của đề
+    thuộc đơn vị ra đề.
+  </p>
+  <p>
+    Liên hệ:
+    {emailReady ? (
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+    ) : (
+      <strong>{SITE.contactEmail}</strong>
+    )}
+    .
+  </p>
+</PageShell>

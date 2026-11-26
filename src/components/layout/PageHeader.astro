@@ -1,0 +1,18 @@
+---
+/** Phần đầu trang nội dung: breadcrumb, tiêu đề, đoạn dẫn, vùng phụ (tag, nhãn). */
+import Breadcrumb from '../ui/Breadcrumb.astro';
+
+interface Props {
+  title: string;
+  lead?: string;
+  crumbs: { label: string; href?: string }[];
+}
+const { title, lead, crumbs } = Astro.props;
+---
+
+<header class="flex max-w-hero flex-col gap-200">
+  <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, ...crumbs, { label: title }]} />
+  <h1 class="heading-4 md:heading-3 text-text-primary">{title}</h1>
+  {lead && <p class="body-3 text-text-secondary">{lead}</p>}
+  <slot />
+</header>

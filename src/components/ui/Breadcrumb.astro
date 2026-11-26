@@ -1,0 +1,40 @@
+---
+/** Đường dẫn trang. Mục cuối là trang hiện tại (aria-current="page", không phải link). */
+import { CaretRightIcon } from '@phosphor-icons/react/ssr';
+
+interface Props {
+  items: { label: string; href?: string }[];
+}
+const { items } = Astro.props;
+---
+
+<nav aria-label="Đường dẫn">
+  <ol class="caption-2 flex flex-wrap items-center gap-75 text-text-tertiary">
+    {items.map((item, index) => {
+      const last = index === items.length - 1;
+      return (
+        <>
+          <li>
+            {last || !item.href ? (
+              <span aria-current={last ? 'page' : undefined} class="text-text-secondary">
+                {item.label}
+              </span>
+            ) : (
+              <a
+                href={item.href}
+                class="touch-target transition duration-300 ease-base hover:text-text-primary"
+              >
+                {item.label}
+              </a>
+            )}
+          </li>
+          {!last && (
+            <li aria-hidden="true" class="inline-flex text-icon-subtle">
+              <CaretRightIcon size={12} />
+            </li>
+          )}
+        </>
+      );
+    })}
+  </ol>
+</nav>

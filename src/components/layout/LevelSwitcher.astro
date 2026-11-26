@@ -1,0 +1,57 @@
+---
+/**
+ * Chọn cấp học đang theo dõi. Lựa chọn được nhớ và phát sự kiện `tdt:level-change`
+ * để các trang nội dung lọc theo (từ Giai đoạn 6).
+ */
+import { CaretDownIcon } from '@phosphor-icons/react/ssr';
+import { LEVELS } from '../../site.config';
+
+interface Props {
+  id: string;
+  wide?: boolean;
+}
+const { id, wide = false } = Astro.props;
+---
+
+<div class:list={['relative', wide ? 'w-full' : 'inline-flex']}>
+  <label for={id} class="sr-only">
+    Cấp học
+  </label>
+  <select
+    id={id}
+    data-level-select
+    class:list={[
+      'body-5 min-h-touch appearance-none rounded-full border border-border-action-secondary bg-surface-primary py-75 pr-600 pl-200 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover',
+      wide && 'w-full',
+    ]}
+  >
+    {LEVELS.map((level) => (
+      <option value={level.value}>{level.label}</option>
+    ))}
+  </select>
+  <span class="pointer-events-none absolute top-1/2 right-200 inline-flex -translate-y-1/2 text-icon-subtle">
+    <CaretDownIcon size={16} aria-hidden="true" />
+  </span>
+</div>
+
+<script>
+  import { readStorage, writeStorage } from '../../lib/storage';
+  import { LEVELS } from '../../site.config';
+
+  const allowed = new Set<string>(LEVELS.map((level) => level.value));
+  const selects = document.querySelectorAll<HTMLSelectElement>('[data-level-select]');
+  const stored = readStorage('level');
+  const initial = stored && allowed.has(stored) ? stored : 'all';
+
+  selects.forEach((select) => {
+    select.value = initial;
+    select.addEventListener('change', () => {
+      const value = allowed.has(select.value) ? select.value : 'all';
+      writeStorage('level', value);
+      selects.forEach((other) => {
+        if (other !== select) other.value = value;
+      });
+      document.dispatchEvent(new CustomEvent('tdt:level-change', { detail: { level: value } }));
+    });
+  });
+</script>

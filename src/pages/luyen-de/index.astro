@@ -1,0 +1,271 @@
+---
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Card from '../../components/ui/Card.astro';
+import LevelBadge from '../../components/ui/LevelBadge.astro';
+import SourceBadge from '../../components/ui/SourceBadge.astro';
+import StateView from '../../components/ui/StateView.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { fieldClasses } from '../../components/ui/recipes';
+import { CONTEST_LABEL, CONTESTS } from '../../data/contests';
+import { LEVEL_INFO, LEVEL_KEYS, TOPICS, type TopicKey } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProblems, problemUrl } from '../../lib/content';
+import { LEVELS as DIFFICULTY, SOURCE_LABELS } from '../../lib/ui-logic';
+
+const problems = await getProblems();
+const usedTopics = [...new Set(problems.flatMap((p) => p.data.topics))] as TopicKey[];
+const usedContests = CONTESTS.filter((c) => problems.some((p) => p.data.source.contest === c.id));
+const field = fieldClasses('interactive');
+const filters = [
+  {
+    key: 'contest',
+    label: 'Kỳ thi',
+    options: usedContests.map((c) => ({ value: c.id, label: c.short })),
+  },
+  {
+    key: 'level',
+    label: 'Cấp học',
+    options: LEVEL_KEYS.map((l) => ({ value: l, label: LEVEL_INFO[l].label })),
+  },
+  {
+    key: 'topic',
+    label: 'Chủ đề',
+    options: usedTopics.map((t) => ({ value: t, label: TOPICS[t] })),
+  },
+  {
+    key: 'difficulty',
+    label: 'Cấp độ',
+    options: Object.entries(DIFFICULTY).map(([v, l]) => ({ value: v, label: `${v}: ${l}` })),
+  },
+  {
+    key: 'source',
+    label: 'Nguồn đề',
+    options: Object.entries(SOURCE_LABELS).map(([v, l]) => ({ value: v, label: l })),
+  },
+  {
+    key: 'status',
+    label: 'Trạng thái của tôi',
+    options: [
+      { value: 'chua-lam', label: 'Chưa làm' },
+      { value: 'dang-lam', label: 'Đang làm' },
+      { value: 'da-dat', label: 'Đã đạt 100%' },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Luyện đề"
+  description={`${problems.length} bài luyện thi học sinh giỏi và Tin học trẻ có lời giải Python đã kiểm định, giả mã, gợi ý mở dần và chấm thử ngay trên trình duyệt.`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Luyện đề"
+      crumbs={[]}
+      lead={`${problems.length} bài, mỗi bài có gợi ý, giả mã, lời giải Python đã đối chiếu với lời giải trâu, và bộ chấm thử chạy ngay trên máy bạn.`}
+    >
+      <p class="body-6 text-text-secondary">
+        Muốn luyện cả đề có bấm giờ? Vào{' '}
+        <a
+          class="text-text-info underline underline-offset-4 hover:text-text-primary"
+          href="/thi-thu"
+        >
+          Thi thử
+        </a>
+        . Muốn biết thể lệ từng kỳ thi? Xem{' '}
+        <a
+          class="text-text-info underline underline-offset-4 hover:text-text-primary"
+          href="/ky-thi"
+        >
+          Hồ sơ kỳ thi
+        </a>
+        .
+      </p>
+    </PageHeader>
+
+    <section
+      aria-label="Bài đã giải"
+      class="grid grid-cols-2 gap-100 sm:grid-cols-3 lg:grid-cols-6"
+      data-solved-summary
+    >
+      <div class="col-span-2 flex flex-col justify-center gap-25 rounded-12 border border-border-action-primary bg-surface-primary p-200 sm:col-span-1 lg:col-span-2">
+        <span class="caption-4 text-text-tertiary">Đã đạt 100%</span>
+        <span class="heading-5 text-text-primary">
+          <span data-solved-total>0</span>/{problems.length} bài
+        </span>
+      </div>
+      {Object.entries(DIFFICULTY)
+        .filter(([d]) => problems.some((p) => String(p.data.difficulty) === d))
+        .map(([d, label]) => (
+          <div class="flex flex-col gap-25 rounded-12 border border-border-primary bg-surface-primary p-200">
+            <span class="caption-4 text-text-tertiary">
+              Cấp {d}: {label}
+            </span>
+            <span class="title-2 text-text-primary">
+              <span data-solved-level={d}>0</span>/
+              {problems.filter((p) => String(p.data.difficulty) === d).length}
+            </span>
+          </div>
+        ))}
+    </section>
+
+    <form
+      class="flex flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary p-300"
+      role="search"
+      aria-label="Lọc bài tập"
+      data-problem-filters
+    >
+      <label class="flex flex-col gap-50">
+        <span class="title-4 text-text-primary">Tìm bài</span>
+        <span class="relative">
+          <span class="pointer-events-none absolute top-0 left-0 inline-flex h-full items-center pl-100 text-icon-subtle">
+            <MagnifyingGlassIcon size={20} aria-hidden="true" />
+          </span>
+          <input
+            type="search"
+            class:list={[field, 'pl-500']}
+            placeholder="Ví dụ: quy hoach dong, xau, nguyen to"
+            data-filter-q
+            autocomplete="off"
+          />
+        </span>
+      </label>
+      <div class="grid grid-cols-1 gap-200 sm:grid-cols-2 lg:grid-cols-3">
+        {filters.map((f) => (
+          <label class="flex flex-col gap-50">
+            <span class="title-5 text-text-secondary">{f.label}</span>
+            <select class={field} data-filter={f.key}>
+              <option value="">Tất cả</option>
+              {f.options.map((o) => (
+                <option value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-200">
+        <p class="body-6 text-text-secondary" data-filter-count aria-live="polite">
+          Đang hiện {problems.length}/{problems.length} bài.
+        </p>
+        <button
+          type="reset"
+          class="body-5 min-h-touch rounded-8 px-100 text-text-info underline underline-offset-4 hover:text-text-primary"
+        >
+          Bỏ mọi bộ lọc
+        </button>
+      </div>
+    </form>
+
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3" data-problem-list>
+      {problems.map((p) => (
+        <li
+          class="flex"
+          data-problem={p.id}
+          data-contest={p.data.source.contest}
+          data-level={p.data.source.level}
+          data-topic={p.data.topics.join(' ')}
+          data-difficulty={p.data.difficulty}
+          data-source={p.data.source.kind}
+          data-text={`${p.data.title} ${p.data.summary} ${p.data.topics.map((t) => TOPICS[t]).join(' ')}`}
+        >
+          <Card href={problemUrl(p.id)} class="w-full">
+            <div class="flex flex-wrap items-center gap-50">
+              <LevelBadge level={p.data.difficulty} />
+              <SourceBadge kind={p.data.source.kind} />
+            </div>
+            <p class="title-2 text-text-primary">{p.data.title}</p>
+            <p class="body-6 text-text-secondary">{p.data.summary}</p>
+            <div class="mt-auto flex flex-wrap gap-50">
+              <Tag>{CONTEST_LABEL[p.data.source.contest]}</Tag>
+              <Tag>Lớp {p.data.grades.join(', ')}</Tag>
+              <span
+                class="caption-3 hidden items-center rounded-full bg-surface-success-subtle px-100 py-25 text-text-success-inverted"
+                data-status-badge
+              />
+            </div>
+          </Card>
+        </li>
+      ))}
+    </ul>
+    <div data-filter-empty hidden>
+      <StateView
+        kind="empty"
+        title="Không có bài nào khớp bộ lọc"
+        description="Bỏ bớt bộ lọc hoặc thử từ khóa ngắn hơn. Tìm kiếm không cần gõ dấu."
+        compact
+      />
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress } from '../../lib/progress';
+  import { readStorage } from '../../lib/storage';
+  import { matchesQuery } from '../../lib/text';
+
+  const form = document.querySelector<HTMLFormElement>('[data-problem-filters]');
+  const items = [...document.querySelectorAll<HTMLElement>('[data-problem]')];
+  const count = document.querySelector<HTMLElement>('[data-filter-count]');
+  const empty = document.querySelector<HTMLElement>('[data-filter-empty]');
+  const q = form?.querySelector<HTMLInputElement>('[data-filter-q]');
+  const selects = [...(form?.querySelectorAll<HTMLSelectElement>('[data-filter]') ?? [])];
+  const progress = loadProgress();
+
+  const statusOf = (id: string) => {
+    const rec = progress.problems[id];
+    if (!rec) return 'chua-lam';
+    return rec.best >= 100 ? 'da-dat' : 'dang-lam';
+  };
+
+  for (const item of items) {
+    const badge = item.querySelector<HTMLElement>('[data-status-badge]');
+    const rec = progress.problems[item.dataset.problem ?? ''];
+    if (!badge || !rec) continue;
+    badge.classList.replace('hidden', 'inline-flex');
+    badge.textContent = rec.best >= 100 ? 'Đã đạt 100%' : `Tốt nhất ${rec.best}%`;
+  }
+
+  function apply() {
+    const want = Object.fromEntries(selects.map((s) => [s.dataset.filter, s.value]));
+    let shown = 0;
+    for (const item of items) {
+      const d = item.dataset;
+      const ok =
+        matchesQuery(d.text ?? '', q?.value ?? '') &&
+        (!want.contest || d.contest === want.contest) &&
+        (!want.level || d.level === want.level) &&
+        (!want.topic || (d.topic ?? '').split(' ').includes(want.topic)) &&
+        (!want.difficulty || d.difficulty === want.difficulty) &&
+        (!want.source || d.source === want.source) &&
+        (!want.status || statusOf(d.problem ?? '') === want.status);
+      item.hidden = !ok;
+      if (ok) shown += 1;
+    }
+    if (count) count.textContent = `Đang hiện ${shown}/${items.length} bài.`;
+    if (empty) empty.hidden = shown > 0;
+  }
+
+  // Cấp học đang chọn trên thanh điều hướng là bộ lọc mặc định.
+  const level = readStorage('level');
+  const levelSelect = selects.find((s) => s.dataset.filter === 'level');
+  if (levelSelect && level && level !== 'all') levelSelect.value = level;
+  document.addEventListener('tdt:level-change', (event) => {
+    const value = (event as CustomEvent<{ level: string }>).detail.level;
+    if (levelSelect) levelSelect.value = value === 'all' ? '' : value;
+    apply();
+  });
+
+  form?.addEventListener('input', apply);
+  form?.addEventListener('submit', (event) => event.preventDefault());
+  form?.addEventListener('reset', () => window.setTimeout(apply, 0));
+  const solved = items.filter((item) => statusOf(item.dataset.problem ?? '') === 'da-dat');
+  const totalEl = document.querySelector('[data-solved-total]');
+  if (totalEl) totalEl.textContent = String(solved.length);
+  document.querySelectorAll<HTMLElement>('[data-solved-level]').forEach((el) => {
+    el.textContent = String(
+      solved.filter((item) => item.dataset.difficulty === el.dataset.solvedLevel).length,
+    );
+  });
+  apply();
+</script>

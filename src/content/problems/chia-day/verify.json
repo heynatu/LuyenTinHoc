@@ -1,0 +1,12 @@
+{
+  "solSha256": "9594e4516bc84cfddb60349ffc2975229a11f6d1d4687d471178fbc5c34ddb37",
+  "testsSha256": "429652dc01380767c9d5885e6348b61d2dbb33e9ef36151ef5de0abd275ba2af",
+  "tests": 15,
+  "zipOnly": 0,
+  "stressRounds": 304,
+  "maxTimeMs": 227,
+  "timeLimitMs": 1000,
+  "pseudoLines": 8,
+  "minPython": "3.8",
+  "verifiedAt": "2026-11-23"
+}

@@ -1,0 +1,61 @@
+---
+/**
+ * Màn hình Trống (Empty) và Lỗi (Error) cho mọi khối dữ liệu.
+ * Trống: hướng dẫn bước đầu và một nút. Lỗi: nói cái gì hỏng và làm gì tiếp, không dùng alert.
+ */
+import { TrayIcon, WarningCircleIcon } from '@phosphor-icons/react/ssr';
+import Button from './Button.astro';
+
+interface Props {
+  kind: 'empty' | 'error';
+  title: string;
+  description: string;
+  actionLabel?: string;
+  actionHref?: string;
+  /** Gắn vào nút để script của trang bắt sự kiện (ví dụ "Thử lại"). */
+  actionId?: string;
+  compact?: boolean;
+}
+
+const {
+  kind,
+  title,
+  description,
+  actionLabel,
+  actionHref,
+  actionId,
+  compact = false,
+} = Astro.props;
+const Icon = kind === 'empty' ? TrayIcon : WarningCircleIcon;
+---
+
+<div
+  role={kind === 'error' ? 'alert' : undefined}
+  class:list={[
+    'flex flex-col items-center gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle text-center',
+    compact ? 'p-300' : 'px-300 py-700',
+  ]}
+>
+  <span
+    class:list={[
+      'inline-flex size-600 items-center justify-center rounded-12 bg-surface-secondary',
+      kind === 'error' ? 'text-icon-error' : 'text-icon-subtle',
+    ]}
+  >
+    <Icon size={24} aria-hidden="true" />
+  </span>
+  <div class="flex max-w-narrow flex-col gap-75">
+    <p class="title-2 text-text-primary">{title}</p>
+    <p class="body-6 text-text-secondary">{description}</p>
+  </div>
+  {actionLabel && (
+    <Button
+      href={actionHref}
+      id={actionId}
+      variant={kind === 'error' ? 'secondary' : 'primary'}
+      size="sm"
+    >
+      {actionLabel}
+    </Button>
+  )}
+</div>

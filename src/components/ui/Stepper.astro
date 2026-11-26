@@ -1,0 +1,66 @@
+---
+/**
+ * Các bước theo thứ tự (Cách hoạt động, tiến độ bài học). Bước xong có dấu tích, bước hiện tại
+ * có vòng viền và aria-current="step", bước sau ở dạng nhạt: không chỉ phân biệt bằng màu.
+ */
+import { CheckIcon } from '@phosphor-icons/react/ssr';
+
+type Status = 'done' | 'current' | 'upcoming';
+
+interface Props {
+  steps: { title: string; description?: string; status: Status }[];
+  label: string;
+}
+
+const { steps, label } = Astro.props;
+const statusText: Record<Status, string> = {
+  done: 'đã xong',
+  current: 'đang làm',
+  upcoming: 'chưa làm',
+};
+---
+
+<ol aria-label={label} class="flex flex-col gap-200 md:flex-row md:gap-300">
+  {steps.map((step, index) => (
+    <li
+      class="flex flex-1 items-start gap-100 md:flex-col"
+      aria-current={step.status === 'current' ? 'step' : undefined}
+    >
+      <div class="flex items-center gap-100 md:w-full">
+        <span
+          class:list={[
+            'title-4 inline-flex size-500 shrink-0 items-center justify-center rounded-full',
+            step.status === 'done' &&
+              'border border-border-action-primary bg-action-primary text-text-on-action',
+            step.status === 'current' && 'border-2 border-border-action-primary text-text-info',
+            step.status === 'upcoming' &&
+              'border border-border-action-secondary text-text-tertiary',
+          ]}
+        >
+          {step.status === 'done' ? <CheckIcon size={16} aria-hidden="true" /> : index + 1}
+        </span>
+        {index < steps.length - 1 && (
+          <span
+            aria-hidden="true"
+            class:list={[
+              'hidden h-px flex-1 md:block',
+              step.status === 'done' ? 'bg-border-action-primary' : 'bg-border-primary',
+            ]}
+          />
+        )}
+      </div>
+      <div class="flex flex-col gap-25 md:pr-200">
+        <span
+          class:list={[
+            'title-3',
+            step.status === 'upcoming' ? 'text-text-secondary' : 'text-text-primary',
+          ]}
+        >
+          {step.title}
+          <span class="sr-only"> ({statusText[step.status]})</span>
+        </span>
+        {step.description && <span class="body-6 text-text-tertiary">{step.description}</span>}
+      </div>
+    </li>
+  ))}
+</ol>

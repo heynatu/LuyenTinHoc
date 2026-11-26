@@ -1,0 +1,73 @@
+---
+/**
+ * Tabs theo mẫu ARIA: mũi tên trái, phải (vòng tròn), Home, End; tab đang chọn có
+ * nền nổi và viền (không chỉ màu). Panel đặt bằng <TabPanel tabs={id} id=… active?> trong slot.
+ * Tablist bo 12, padding 4: tab bên trong bo 12 − 4 = 8.
+ */
+interface Props {
+  id: string;
+  label: string;
+  tabs: { id: string; label: string }[];
+  active?: string;
+}
+
+const { id, label, tabs, active = tabs[0]?.id } = Astro.props;
+---
+
+<div class="flex flex-col gap-200" data-tabs={id}>
+  <div class="overflow-x-auto">
+    <div
+      role="tablist"
+      aria-label={label}
+      class="inline-flex min-w-max gap-25 rounded-12 bg-surface-secondary p-50"
+    >
+      {tabs.map((tab) => {
+        const selected = tab.id === active;
+        return (
+          <button
+            type="button"
+            role="tab"
+            id={`${id}-tab-${tab.id}`}
+            aria-controls={`${id}-panel-${tab.id}`}
+            aria-selected={selected ? 'true' : 'false'}
+            tabindex={selected ? 0 : -1}
+            data-tab={tab.id}
+            class="title-4 min-h-touch rounded-8 border border-transparent px-200 text-text-secondary transition duration-300 ease-base hover:text-text-primary aria-selected:border-border-primary aria-selected:bg-surface-primary aria-selected:text-text-primary"
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+  <slot />
+</div>
+
+<script>
+  import { nextTabIndex } from '../../lib/ui-logic';
+
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+
+    function select(index: number, focus: boolean) {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(tab.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tabs[index]?.focus();
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => select(index, false));
+      tab.addEventListener('keydown', (event) => {
+        const next = nextTabIndex(index, event.key, tabs.length);
+        if (next === null) return;
+        event.preventDefault();
+        select(next, true);
+      });
+    });
+  });
+</script>

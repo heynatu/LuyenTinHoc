@@ -1,0 +1,43 @@
+---
+/**
+ * Khung chung của ô nhập: nhãn, gợi ý, thông báo lỗi (có icon, không chỉ màu).
+ * Ô nhập bên trong phải đặt aria-describedby = describedBy(id, hint, error).
+ */
+import { WarningCircleIcon } from '@phosphor-icons/react/ssr';
+
+interface Props {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+const { id, label, hint, error, required = false, disabled = false } = Astro.props;
+---
+
+<div class="flex w-full flex-col gap-75">
+  <label
+    for={id}
+    class:list={['title-4', disabled ? 'text-text-primary-disabled' : 'text-text-primary']}
+  >
+    {label}
+    {required && <span class="text-text-error"> (bắt buộc)</span>}
+  </label>
+  <slot />
+  {error ? (
+    <p id={`${id}-error`} class="caption-2 flex items-start gap-50 text-text-error">
+      <span class="inline-flex shrink-0 pt-25">
+        <WarningCircleIcon size={16} aria-hidden="true" />
+      </span>
+      {error}
+    </p>
+  ) : (
+    hint && (
+      <p id={`${id}-hint`} class="caption-2 text-text-tertiary">
+        {hint}
+      </p>
+    )
+  )}
+</div>

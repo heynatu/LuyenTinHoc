@@ -1,0 +1,42 @@
+---
+/**
+ * Chú thích ngắn hiện khi di chuột hoặc focus vào phần tử bên trong; Escape ẩn (WCAG 1.4.13).
+ * Phần tử đầu tiên focus được trong slot được gắn aria-describedby trỏ tới chú thích.
+ * Không đặt thông tin bắt buộc vào tooltip: trên điện thoại chỉ hiện khi focus.
+ */
+interface Props {
+  id: string;
+  text: string;
+}
+const { id, text } = Astro.props;
+---
+
+<span class="ui-tooltip-root relative inline-flex" data-tooltip={id}>
+  <slot />
+  <span
+    id={id}
+    role="tooltip"
+    class="ui-tooltip caption-4 rounded-6 bg-surface-inverted px-75 py-50 whitespace-nowrap text-text-inverted"
+  >
+    {text}
+  </span>
+</span>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-tooltip]').forEach((root) => {
+    const id = root.dataset.tooltip ?? '';
+    const target = root.querySelector<HTMLElement>(
+      'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (target) {
+      const existing = target.getAttribute('aria-describedby');
+      target.setAttribute('aria-describedby', existing ? `${existing} ${id}` : id);
+    }
+    const reset = () => root.removeAttribute('data-dismissed');
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') root.dataset.dismissed = 'true';
+    });
+    root.addEventListener('mouseleave', reset);
+    root.addEventListener('focusout', reset);
+  });
+</script>

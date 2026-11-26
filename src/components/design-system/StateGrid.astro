@@ -1,0 +1,38 @@
+---
+/**
+ * Bảng trạng thái cuộn ngang trong khung (trang không tràn ở 390px).
+ * Slot là các hàng <tr>; ô đầu mỗi hàng nên là <th scope="row">.
+ */
+interface Props {
+  label: string;
+  columns: string[];
+  firstColumn?: string;
+}
+const { label, columns, firstColumn = 'Loại' } = Astro.props;
+---
+
+<div
+  class="overflow-x-auto rounded-12 border border-border-primary"
+  role="region"
+  aria-label={label}
+  tabindex="0"
+>
+  <table class="w-full min-w-max border-collapse">
+    <caption class="sr-only">{label}</caption>
+    <thead>
+      <tr class="bg-surface-secondary">
+        <th scope="col" class="caption-3 px-200 py-100 text-left text-text-tertiary">
+          {firstColumn}
+        </th>
+        {columns.map((col) => (
+          <th scope="col" class="caption-3 px-200 py-100 text-left text-text-tertiary">
+            {col}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      <slot />
+    </tbody>
+  </table>
+</div>

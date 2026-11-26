@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Card from '../../components/ui/Card.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const articles = (await getCollection('handbook')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout
+  title="Cẩm nang"
+  description="Cẩm nang luyện thi tin học: lộ trình 12 tuần, bảng chọn thuật toán theo giới hạn n cho Python, mẫu code phòng thi, kiểm thử, danh sách kiểm trước khi nộp bài."
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Cẩm nang"
+      crumbs={[]}
+      lead={`${articles.length} bài hướng dẫn ngắn, đọc một lần và mở lại trước mỗi kỳ thi.`}
+    />
+    <ol class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+      {articles.map((a) => (
+        <li class="flex" data-level={a.data.audience.join(' ')}>
+          <Card href={`/cam-nang/${a.id}`} class="w-full">
+            <span class="caption-3 text-text-tertiary">Bài {a.data.order}</span>
+            <p class="title-2 text-text-primary">{a.data.title}</p>
+            <p class="body-6 text-text-secondary">{a.data.description}</p>
+            <div class="mt-auto flex flex-wrap gap-50">
+              {a.data.audience.map((l) => (
+                <Tag>{LEVEL_INFO[l].label}</Tag>
+              ))}
+            </div>
+          </Card>
+        </li>
+      ))}
+    </ol>
+  </div>
+</BaseLayout>

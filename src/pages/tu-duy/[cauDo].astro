@@ -1,0 +1,501 @@
+---
+import {
+  ArrowDownIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  FlagIcon,
+  PlayIcon,
+  RobotIcon,
+  StarIcon,
+  TrashIcon,
+} from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Accordion from '../../components/ui/Accordion.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Button from '../../components/ui/Button.astro';
+import IconButton from '../../components/ui/IconButton.astro';
+import PseudoBlock from '../../components/ui/PseudoBlock.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { fieldClasses } from '../../components/ui/recipes';
+import { ENGINES, PUZZLE_LEVELS, PUZZLES, SKILLS, type Puzzle } from '../../data/puzzles';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { DIR_LABEL, seededShuffle } from '../../lib/puzzles/engines';
+
+export function getStaticPaths() {
+  return PUZZLES.map((puzzle, i) => ({
+    params: { cauDo: puzzle.id },
+    props: { puzzle, next: PUZZLES[i + 1] ?? PUZZLES[0] },
+  }));
+}
+
+const { puzzle, next } = Astro.props as { puzzle: Puzzle; next: Puzzle };
+const field = fieldClasses('interactive');
+const GRID_COLS: Record<number, string> = {
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+  7: 'grid-cols-7',
+};
+const seed = [...puzzle.id].reduce((s, ch) => s + ch.charCodeAt(0), 0);
+const order = puzzle.engine === 'order' ? seededShuffle(puzzle.steps.length, seed) : [];
+const data = JSON.stringify(
+  puzzle.engine === 'robot'
+    ? { engine: 'robot', grid: puzzle.grid, maxCommands: puzzle.maxCommands }
+    : puzzle.engine === 'binary'
+      ? { engine: 'binary', cards: puzzle.cards, target: puzzle.target }
+      : puzzle.engine === 'order'
+        ? { engine: 'order' }
+        : { engine: 'choice', answer: puzzle.answer },
+);
+const dirs = [
+  { dir: 'U', icon: ArrowUpIcon },
+  { dir: 'L', icon: ArrowLeftIcon },
+  { dir: 'D', icon: ArrowDownIcon },
+  { dir: 'R', icon: ArrowRightIcon },
+] as const;
+---
+
+<BaseLayout
+  title={puzzle.title}
+  description={`Câu đố tư duy ${PUZZLE_LEVELS[puzzle.level].toLowerCase()}: ${puzzle.prompt}`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pt-600 md:px-400">
+    <PageHeader title={puzzle.title} crumbs={[{ label: 'Rèn luyện tư duy', href: '/tu-duy' }]}>
+      <div class="flex flex-wrap gap-75">
+        <Badge tone="info">{PUZZLE_LEVELS[puzzle.level]}</Badge>
+        <Tag>{ENGINES[puzzle.engine]}</Tag>
+        <Tag>Kỹ năng: {SKILLS[puzzle.skill]}</Tag>
+        {puzzle.audience.map((a) => (
+          <Tag>{LEVEL_INFO[a].label}</Tag>
+        ))}
+        <span
+          class="caption-3 hidden items-center gap-50 rounded-full bg-surface-success-subtle px-100 py-25 text-text-success-inverted"
+          data-solved-badge
+        >
+          <CheckIcon size={14} aria-hidden="true" />
+          Đã giải
+        </span>
+      </div>
+    </PageHeader>
+
+    <section
+      class="flex max-w-reading flex-col gap-300"
+      data-puzzle={puzzle.id}
+      data-config={data}
+      aria-label="Câu đố"
+    >
+      <p class="body-3 text-text-primary">{puzzle.prompt}</p>
+      {puzzle.engine === 'choice' && puzzle.code && (
+        <PseudoBlock code={puzzle.code} title="Chương trình" />
+      )}
+
+      {puzzle.engine === 'robot' && (
+        <div class="flex flex-col gap-300">
+          <div
+            class:list={[
+              'grid w-full max-w-narrow gap-25 rounded-12 border border-border-primary bg-surface-secondary p-50',
+              GRID_COLS[puzzle.grid[0]!.length],
+            ]}
+            role="img"
+            aria-label={`Bản đồ ${puzzle.grid.length} hàng, ${puzzle.grid[0]!.length} cột`}
+            data-robot-grid
+          >
+            {puzzle.grid.flatMap((row, r) =>
+              [...row].map((cell, c) => (
+                <div
+                  class:list={[
+                    'flex aspect-square items-center justify-center rounded-8',
+                    cell === '#' ? 'bg-surface-tertiary' : 'bg-surface-primary',
+                  ]}
+                  data-cell={`${r},${c}`}
+                >
+                  {cell === 'G' && (
+                    <span class="inline-flex text-icon-success" data-goal>
+                      <FlagIcon size={24} weight="fill" aria-hidden="true" />
+                    </span>
+                  )}
+                  {cell === '*' && (
+                    <span class="inline-flex text-icon-warning" data-star>
+                      <StarIcon size={24} weight="fill" aria-hidden="true" />
+                    </span>
+                  )}
+                  {cell === 'S' && (
+                    <span class="inline-flex text-icon-info" data-robot>
+                      <RobotIcon size={28} weight="fill" aria-hidden="true" />
+                    </span>
+                  )}
+                </div>
+              )),
+            )}
+          </div>
+          <p class="caption-2 text-text-tertiary">
+            Robot ở ô có hình robot, cờ là đích, ô xám đậm là tường. Robot vẫn đi qua được ô có cờ.
+          </p>
+          <div class="flex flex-wrap items-end gap-100">
+            <label class="flex flex-col gap-25">
+              <span class="title-5 text-text-secondary">Số bước</span>
+              <select class:list={[field, 'w-auto pr-300']} data-robot-steps>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                  <option value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            {dirs.map(({ dir, icon: Icon }) => (
+              <Button variant="secondary" data-robot-add={dir}>
+                <Icon size={20} aria-hidden="true" />
+                {DIR_LABEL[dir]}
+              </Button>
+            ))}
+          </div>
+          <div class="flex flex-col gap-100">
+            <p class="title-4 text-text-primary">
+              Chương trình (<span data-robot-count>0</span>/{puzzle.maxCommands} lệnh)
+            </p>
+            <ol
+              class="flex flex-col gap-50"
+              data-robot-program
+              aria-label="Các lệnh của chương trình"
+            />
+            <p class="caption-2 text-text-tertiary" data-robot-empty>
+              Chưa có lệnh. Chọn số bước rồi bấm một hướng đi.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-100">
+            <Button data-robot-run>
+              <PlayIcon size={20} aria-hidden="true" />
+              Chạy chương trình
+            </Button>
+            <Button variant="secondary" data-robot-clear>
+              <TrashIcon size={20} aria-hidden="true" />
+              Xóa hết lệnh
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {puzzle.engine === 'binary' && (
+        <div class="flex flex-col gap-200">
+          <div class="flex flex-wrap gap-100" role="group" aria-label="Các tấm thẻ">
+            {puzzle.cards.map((value, i) => (
+              <button
+                type="button"
+                aria-pressed="false"
+                data-card={i}
+                class="flex min-h-touch w-900 flex-col items-center gap-50 rounded-12 border border-border-primary bg-surface-secondary p-100 text-text-tertiary transition duration-300 ease-base hover:border-border-action-primary aria-pressed:border-border-action-primary aria-pressed:bg-surface-primary aria-pressed:text-text-primary"
+              >
+                <span class="title-2">{value}</span>
+                <span class="caption-4" data-card-label>
+                  Đang úp
+                </span>
+              </button>
+            ))}
+          </div>
+          <p class="body-5 text-text-secondary">
+            Tổng đang có:{' '}
+            <span class="title-3 text-text-primary" data-binary-sum>
+              0
+            </span>
+            . Viết nhị phân:{' '}
+            <span class="font-mono text-text-primary" data-binary-bits>
+              {'0'.repeat(puzzle.cards.length)}
+            </span>
+          </p>
+          <div>
+            <Button data-check>Kiểm tra</Button>
+          </div>
+        </div>
+      )}
+
+      {puzzle.engine === 'order' && (
+        <div class="flex flex-col gap-200">
+          <ol
+            class="flex flex-col gap-75"
+            data-order-list
+            aria-label="Các bước, theo thứ tự hiện tại"
+          >
+            {order.map((stepIndex) => (
+              <li
+                class="flex items-center gap-100 rounded-12 border border-border-primary bg-surface-primary p-100"
+                data-step={stepIndex}
+              >
+                <span
+                  class:list={[
+                    'body-5 min-w-0 flex-1 text-text-primary',
+                    puzzle.mono && 'font-mono whitespace-pre-wrap',
+                  ]}
+                >
+                  {puzzle.steps[stepIndex]}
+                </span>
+                <span class="caption-3 hidden shrink-0" data-step-mark />
+                <IconButton
+                  label={`Chuyển lên: ${puzzle.steps[stepIndex]}`}
+                  variant="secondary"
+                  data-move="-1"
+                >
+                  <ArrowUpIcon size={20} aria-hidden="true" />
+                </IconButton>
+                <IconButton
+                  label={`Chuyển xuống: ${puzzle.steps[stepIndex]}`}
+                  variant="secondary"
+                  data-move="1"
+                >
+                  <ArrowDownIcon size={20} aria-hidden="true" />
+                </IconButton>
+              </li>
+            ))}
+          </ol>
+          <div>
+            <Button data-check>Kiểm tra thứ tự</Button>
+          </div>
+        </div>
+      )}
+
+      {puzzle.engine === 'choice' && (
+        <fieldset class="flex flex-col gap-75">
+          <legend class="sr-only">Chọn một đáp án</legend>
+          {puzzle.options.map((option, i) => (
+            <label class="body-5 flex min-h-touch cursor-pointer items-center gap-100 rounded-12 border border-border-primary bg-surface-primary px-200 py-75 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover has-checked:border-border-action-primary">
+              <input
+                type="radio"
+                name={`chon-${puzzle.id}`}
+                value={i}
+                class="size-200 accent-current"
+              />
+              {option}
+            </label>
+          ))}
+          <div class="pt-100">
+            <Button data-check>Kiểm tra</Button>
+          </div>
+        </fieldset>
+      )}
+
+      <div
+        data-feedback
+        role="status"
+        aria-live="polite"
+        class="body-5 hidden rounded-12 border p-200"
+      ></div>
+    </section>
+
+    <section aria-labelledby="goi-y" class="flex max-w-reading flex-col gap-100">
+      <h2 id="goi-y" class="heading-6 text-text-primary">
+        Gợi ý và lời giải
+      </h2>
+      <Accordion title="Gợi ý 1">
+        <p>{puzzle.hints[0]}</p>
+      </Accordion>
+      <Accordion title="Gợi ý 2">
+        <p>{puzzle.hints[1]}</p>
+      </Accordion>
+      <Accordion title="Lời giải">
+        <p>{puzzle.solution}</p>
+        {puzzle.engine === 'robot' && (
+          <p>
+            Một chương trình đúng:{' '}
+            {puzzle.answer.map((c) => `${DIR_LABEL[c.dir]} ${c.steps}`).join(', ')}.
+          </p>
+        )}
+        <p>Kỹ năng được rèn: {SKILLS[puzzle.skill].toLowerCase()}.</p>
+      </Accordion>
+    </section>
+
+    <nav aria-label="Câu đố tiếp theo">
+      <a
+        href={`/tu-duy/${next.id}`}
+        class="body-5 inline-flex min-h-touch items-center gap-75 text-text-info hover:text-text-primary"
+      >
+        Câu tiếp theo: {next.title}
+        <ArrowRightIcon size={16} aria-hidden="true" />
+      </a>
+    </nav>
+  </div>
+</BaseLayout>
+
+<script>
+  import {
+    binarySum,
+    DIR_LABEL,
+    isOrdered,
+    runRobot,
+    type Dir,
+    type RobotCommand,
+  } from '../../lib/puzzles/engines';
+  import { loadProgress, markPuzzle } from '../../lib/progress';
+
+  const root = document.querySelector<HTMLElement>('[data-puzzle]');
+  const feedback = document.querySelector<HTMLElement>('[data-feedback]');
+  const badge = document.querySelector<HTMLElement>('[data-solved-badge]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const showBadge = () => badge?.classList.replace('hidden', 'inline-flex');
+  if (root && loadProgress().puzzles[root.dataset.puzzle ?? '']) showBadge();
+
+  function say(ok: boolean, text: string) {
+    if (!feedback) return;
+    feedback.textContent = (ok ? 'Chính xác. ' : 'Chưa đúng. ') + text;
+    feedback.className = `body-5 block rounded-12 border p-200 ${ok ? 'border-border-success bg-surface-success-subtle text-text-success-inverted' : 'border-border-warning bg-surface-warning-subtle text-text-warning-inverted'}`;
+    if (ok && root) {
+      markPuzzle(root.dataset.puzzle ?? '');
+      showBadge();
+    }
+  }
+
+  if (root) {
+    const config = JSON.parse(root.dataset.config ?? '{}') as
+      | { engine: 'robot'; grid: string[]; maxCommands: number }
+      | { engine: 'binary'; cards: number[]; target: number }
+      | { engine: 'order' }
+      | { engine: 'choice'; answer: number };
+
+    if (config.engine === 'robot') {
+      const program: RobotCommand[] = [];
+      const list = root.querySelector<HTMLOListElement>('[data-robot-program]')!;
+      const empty = root.querySelector<HTMLElement>('[data-robot-empty]')!;
+      const count = root.querySelector<HTMLElement>('[data-robot-count]')!;
+      const stepsSelect = root.querySelector<HTMLSelectElement>('[data-robot-steps]')!;
+      const robot = root.querySelector<HTMLElement>('[data-robot]')!;
+      const cellAt = (r: number, c: number) =>
+        root.querySelector<HTMLElement>(`[data-cell="${r},${c}"]`);
+      const home = robot.parentElement!;
+      let running = false;
+
+      const render = () => {
+        list.replaceChildren();
+        program.forEach((cmd, i) => {
+          const li = document.createElement('li');
+          li.className =
+            'flex items-center justify-between gap-100 rounded-8 border border-border-primary px-100 py-50';
+          const label = document.createElement('span');
+          label.className = 'body-5 text-text-primary';
+          label.textContent = `${i + 1}. ${DIR_LABEL[cmd.dir]} ${cmd.steps} bước`;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className =
+            'body-5 min-h-touch rounded-8 px-100 text-text-info underline underline-offset-4 hover:text-text-primary';
+          remove.textContent = 'Xóa';
+          remove.setAttribute('aria-label', `Xóa lệnh ${i + 1}`);
+          remove.addEventListener('click', () => {
+            program.splice(i, 1);
+            render();
+          });
+          li.append(label, remove);
+          list.append(li);
+        });
+        count.textContent = String(program.length);
+        empty.hidden = program.length > 0;
+      };
+
+      root.querySelectorAll<HTMLButtonElement>('[data-robot-add]').forEach((button) => {
+        button.addEventListener('click', () => {
+          program.push({ dir: button.dataset.robotAdd as Dir, steps: Number(stepsSelect.value) });
+          render();
+        });
+      });
+      root.querySelector('[data-robot-clear]')?.addEventListener('click', () => {
+        program.length = 0;
+        home.append(robot);
+        render();
+      });
+      root.querySelector('[data-robot-run]')?.addEventListener('click', async () => {
+        if (running) return;
+        running = true;
+        const outcome = runRobot(config.grid, program, config.maxCommands);
+        for (const [r, c] of outcome.path) {
+          cellAt(r, c)?.append(robot);
+          if (!reduce) await new Promise((resolve) => window.setTimeout(resolve, 220));
+        }
+        say(
+          outcome.ok,
+          outcome.ok
+            ? `${outcome.message} Chương trình dùng ${program.length} lệnh.`
+            : `${outcome.message} Bấm Xóa hết lệnh hoặc xóa từng lệnh để thử lại.`,
+        );
+        if (!outcome.ok) window.setTimeout(() => home.append(robot), reduce ? 0 : 800);
+        running = false;
+      });
+      render();
+    }
+
+    if (config.engine === 'binary') {
+      const cards = [...root.querySelectorAll<HTMLButtonElement>('[data-card]')];
+      const sumEl = root.querySelector<HTMLElement>('[data-binary-sum]')!;
+      const bitsEl = root.querySelector<HTMLElement>('[data-binary-bits]')!;
+      const state = cards.map(() => false);
+      const update = () => {
+        sumEl.textContent = String(binarySum(config.cards, state));
+        bitsEl.textContent = state.map((on) => (on ? '1' : '0')).join('');
+      };
+      cards.forEach((card, i) => {
+        card.addEventListener('click', () => {
+          state[i] = !state[i];
+          card.setAttribute('aria-pressed', String(state[i]));
+          const label = card.querySelector('[data-card-label]');
+          if (label) label.textContent = state[i] ? 'Đang lật' : 'Đang úp';
+          update();
+        });
+      });
+      root.querySelector('[data-check]')?.addEventListener('click', () => {
+        const sum = binarySum(config.cards, state);
+        say(
+          sum === config.target,
+          sum === config.target
+            ? `Tổng bằng ${config.target}, viết nhị phân là ${bitsEl.textContent}.`
+            : `Tổng đang là ${sum}, cần ${config.target}.`,
+        );
+      });
+    }
+
+    if (config.engine === 'order') {
+      const list = root.querySelector<HTMLOListElement>('[data-order-list]')!;
+      list.addEventListener('click', (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-move]');
+        const item = button?.closest<HTMLElement>('[data-step]');
+        if (!button || !item) return;
+        const sibling =
+          button.dataset.move === '-1' ? item.previousElementSibling : item.nextElementSibling;
+        if (!sibling) return;
+        if (button.dataset.move === '-1') sibling.before(item);
+        else sibling.after(item);
+        button.focus();
+      });
+      root.querySelector('[data-check]')?.addEventListener('click', () => {
+        const items = [...list.querySelectorAll<HTMLElement>('[data-step]')];
+        const order = items.map((li) => Number(li.dataset.step));
+        items.forEach((li, i) => {
+          const mark = li.querySelector<HTMLElement>('[data-step-mark]');
+          if (!mark) return;
+          const right = order[i] === i;
+          mark.textContent = right ? 'Đúng chỗ' : 'Sai chỗ';
+          mark.className = `caption-3 inline-flex shrink-0 ${right ? 'text-text-success' : 'text-text-error'}`;
+        });
+        const correct = order.filter((v, i) => v === i).length;
+        say(
+          isOrdered(order),
+          isOrdered(order)
+            ? 'Các bước đã đúng thứ tự.'
+            : `${correct}/${order.length} bước đang đúng chỗ.`,
+        );
+      });
+    }
+
+    if (config.engine === 'choice') {
+      root.querySelector('[data-check]')?.addEventListener('click', () => {
+        const picked = root.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+        if (!picked) {
+          if (feedback) {
+            feedback.textContent = 'Hãy chọn một đáp án trước khi kiểm tra.';
+            feedback.className =
+              'body-5 block rounded-12 border border-border-primary p-200 text-text-secondary';
+          }
+          return;
+        }
+        const ok = Number(picked.value) === config.answer;
+        say(ok, ok ? 'Mở phần Lời giải để xem cách nghĩ.' : 'Thử dùng gợi ý rồi chọn lại.');
+      });
+    }
+  }
+</script>

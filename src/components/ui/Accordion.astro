@@ -1,0 +1,30 @@
+---
+/**
+ * Một mục mở, đóng trên <details> gốc: bàn phím, trình đọc màn hình, tìm trong trang (Ctrl+F)
+ * chạy sẵn, không cần JavaScript. Dùng cho FAQ, gợi ý mở dần.
+ */
+import { CaretDownIcon } from '@phosphor-icons/react/ssr';
+
+interface Props {
+  title: string;
+  open?: boolean;
+  name?: string;
+}
+const { title, open = false, name } = Astro.props;
+---
+
+<details
+  class="ui-accordion group rounded-12 border border-border-primary bg-surface-primary-subtle"
+  open={open}
+  name={name}
+>
+  <summary class="title-3 flex min-h-touch cursor-pointer list-none items-center justify-between gap-200 rounded-12 px-200 py-100 text-text-primary transition duration-300 ease-base hover:bg-surface-primary-hover">
+    {title}
+    <span class="inline-flex shrink-0 text-icon-subtle transition duration-300 ease-base group-open:rotate-180">
+      <CaretDownIcon size={20} aria-hidden="true" />
+    </span>
+  </summary>
+  <div class="body-6 flex flex-col gap-100 px-200 pt-50 pb-200 text-text-secondary">
+    <slot />
+  </div>
+</details>

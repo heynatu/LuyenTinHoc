@@ -1,0 +1,535 @@
+---
+/**
+ * Trang chủ (mục 4.2, theo landing-page-design). Một hành động chính: chọn cấp học.
+ * Mọi con số lấy từ nội dung lúc build, không gõ tay.
+ */
+import {
+  ExamIcon,
+  NotebookIcon,
+  TerminalWindowIcon,
+  TreeStructureIcon,
+  WarningIcon,
+} from '@phosphor-icons/react/ssr';
+import Accordion from '../components/ui/Accordion.astro';
+import Button from '../components/ui/Button.astro';
+import Visualizer from '../components/viz/Visualizer.astro';
+import { LEVEL_INFO } from '../data/taxonomy';
+import { PUZZLES } from '../data/puzzles';
+import { TRAPS } from '../data/traps';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLessons, getProblems } from '../lib/content';
+import { verifyOf } from '../lib/problems';
+import { ALGORITHMS } from '../lib/viz/registry';
+import { SITE } from '../site.config';
+
+const lessons = await getLessons();
+const problems = await getProblems();
+const verified = problems.map((p) => verifyOf(p.id)!);
+const totalTests = verified.reduce((s, v) => s + v.tests, 0);
+const totalStress = verified.reduce((s, v) => s + v.stressRounds, 0);
+const count = (level: string) => lessons.filter((l) => l.data.level === level).length;
+
+const paths = [
+  {
+    level: 'tieu-hoc',
+    title: 'Tiểu học',
+    outcome: 'Chia việc thành các bước, dùng lặp và rẽ nhánh qua câu đố robot, thẻ nhị phân.',
+    contest: 'Chuẩn bị cho Tin học trẻ bảng Tiểu học',
+    span: 'md:col-span-2',
+  },
+  {
+    level: 'thcs',
+    title: 'THCS',
+    outcome:
+      'Thuật toán, sơ đồ khối, tìm kiếm, sắp xếp; chuyển từ khối lệnh sang Python để thi học sinh giỏi lớp 9.',
+    contest: 'Học sinh giỏi THCS, Tin học trẻ bảng THCS',
+    span: 'md:col-span-3',
+  },
+  {
+    level: 'thpt',
+    title: 'THPT',
+    outcome:
+      'Python, cơ sở dữ liệu và SQL, kỹ thuật mảng, quy hoạch động, đồ thị cho kỳ thi cấp tỉnh.',
+    contest: 'Học sinh giỏi tỉnh Gia Lai, Tin học trẻ bảng THPT',
+    span: 'md:col-span-5',
+  },
+] as const;
+
+const trapPicks = ['sai-ten-file', 'doc-du-lieu-cham', 'truong-hop-bien', 'round-ngan-hang']
+  .map((slug) => TRAPS.find((t) => t.slug === slug)!)
+  .filter(Boolean);
+
+const benefits = [
+  {
+    icon: TreeStructureIcon,
+    title: 'Xem thuật toán chạy với dữ liệu của bạn',
+    text: `${ALGORITHMS.length} thuật toán, mỗi bước tô sáng dòng giả mã, giá trị biến và giải thích bằng lời.`,
+    href: '/mo-phong',
+    span: 'md:col-span-4',
+  },
+  {
+    icon: TerminalWindowIcon,
+    title: 'Chạy Python và SQL ngay trên trình duyệt',
+    text: 'Không cài đặt. Đọc ghi file như phòng thi, lỗi giải thích bằng tiếng Việt.',
+    href: '/lap-trinh',
+    span: 'md:col-span-2',
+  },
+  {
+    icon: ExamIcon,
+    title: 'Luyện đề có chấm thử',
+    text: `${problems.length} bài theo dạng đề học sinh giỏi tỉnh và Tin học trẻ, có gợi ý, giả mã, lời giải Python.`,
+    href: '/luyen-de',
+    span: 'md:col-span-2',
+  },
+  {
+    icon: NotebookIcon,
+    title: 'Cẩm nang phòng thi',
+    text: 'Bảng chọn thuật toán theo giới hạn n cho Python, mẫu code, danh sách kiểm trước khi nộp, lộ trình 12 tuần.',
+    href: '/cam-nang',
+    span: 'md:col-span-4',
+  },
+];
+
+const steps = [
+  { title: 'Chọn cấp học', text: 'Tiểu học, THCS hoặc THPT. Lựa chọn được nhớ lại cho lần sau.' },
+  {
+    title: 'Học và xem mô phỏng',
+    text: 'Mỗi bài học có ví dụ chạy được, câu hỏi kiểm tra và mô phỏng liên quan.',
+  },
+  {
+    title: 'Luyện đề và thi thử',
+    text: 'Làm bài, chấm thử, mở gợi ý khi bí, rồi làm đề thi thử có bấm giờ.',
+  },
+];
+
+const faq = [
+  {
+    q: 'Tư Duy Tin có miễn phí không?',
+    a: 'Có. Mọi bài học, mô phỏng, đề luyện và bộ chấm thử đều dùng miễn phí.',
+  },
+  {
+    q: 'Có cần đăng ký tài khoản không?',
+    a: 'Không. Bạn mở trang là học được ngay, trang không có tài khoản và không dùng cookie.',
+  },
+  {
+    q: 'Tiến độ học được lưu ở đâu?',
+    a: 'Trong bộ nhớ của trình duyệt trên máy bạn, không gửi đi đâu. Ở trang Tiến độ, bạn có thể xuất ra file để sao lưu hoặc chuyển sang máy khác.',
+  },
+  {
+    q: 'Dùng điện thoại được không?',
+    a: 'Được. Bài học, mô phỏng và câu đố dùng tốt trên điện thoại. Viết code dài thì nên dùng máy tính. Lần đầu chạy Python, trình duyệt tải khoảng 13 MB.',
+  },
+  {
+    q: 'Đề trên trang có phải đề thi thật không?',
+    a: 'Mỗi bài ghi rõ một trong ba nhãn: Đề chính thức, Phỏng theo đề gốc, Đề luyện biên soạn. Hiện kho đề gồm đề luyện biên soạn theo dạng bài thường gặp; trang không gắn tên kỳ thi và năm cho đề tự soạn.',
+  },
+  {
+    q: 'Lời giải dùng Python phiên bản nào?',
+    a: 'Lời giải chỉ dùng thư viện chuẩn và được kiểm tra để chạy từ Python 3.8, vì máy chấm ở nhiều phòng thi dùng bản cũ. Phòng lập trình trên trình duyệt chạy Python bản mới.',
+  },
+  {
+    q: 'Chấm thử có giống Themis không?',
+    a: 'Giống ở cách chấm: chạy từng test, so kết quả, tính điểm theo tỉ lệ test đúng. Thời gian đo trên trình duyệt chỉ là ước lượng. Mỗi bài có nút tải bộ test theo cấu trúc thư mục của Themis để tự chấm trên máy.',
+  },
+  {
+    q: 'Giáo viên dùng trong lớp thế nào?',
+    a: 'Gửi đường dẫn bài học, bài luyện hoặc đề thi thử cho học sinh, in đề, tải bộ test. Xem hướng dẫn ở trang Dành cho giáo viên.',
+  },
+  {
+    q: 'Sách THCS dùng lập trình khối lệnh, sao trang lại dạy Python?',
+    a: 'Khái niệm biến, rẽ nhánh, vòng lặp giống nhau ở khối lệnh và Python; trang có bài chuyển từ khối lệnh sang Python. Ngôn ngữ được dùng ở mỗi kỳ thi cần xem thể lệ năm hiện hành.',
+  },
+  {
+    q: 'Thấy lời giải sai thì báo ở đâu?',
+    a: `Gửi thư tới ${SITE.contactEmail} kèm đường dẫn trang và mô tả ngắn. Thông tin liên hệ có ở trang Giới thiệu.`,
+  },
+];
+
+const faqJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}).replace(/</g, '\\u003c');
+
+const resumeData = JSON.stringify({
+  lessons: lessons.map((l) => ({ id: l.id, level: l.data.level, title: l.data.title })),
+  problems: problems.map((p) => ({ id: p.id, title: p.data.title })),
+});
+
+const tagline = [
+  ['Mỗi', 'dòng', 'code', 'đều', 'có', 'lý', 'do'],
+  ['Hiểu', 'lý', 'do', 'để', 'đạt', 'giải', 'cao'],
+];
+---
+
+<BaseLayout>
+  <!-- 1. Hero -->
+  <section class="mx-auto grid w-full max-w-content grid-cols-1 items-center gap-600 px-200 pt-600 pb-800 md:px-400 lg:grid-cols-2 lg:pt-800">
+    <div class="flex max-w-hero flex-col gap-300">
+      <!-- Mỗi dòng đã đo vừa khung 680px ở heading-1 và 358px ở heading-4. -->
+      <h1 class="heading-4 sm:heading-2 lg:heading-3 xl:heading-1">
+        <span class="text-hero-gradient">
+          Hiểu thuật toán
+          <br />
+          Tự tin vào phòng thi
+        </span>
+      </h1>
+      <p class="body-3 md:title-2 text-text-secondary">
+        Bài học bám chương trình GDPT 2018, mô phỏng thuật toán chạy ngay trên trình duyệt và kho đề
+        luyện thi học sinh giỏi có lời giải Python đã kiểm chứng.
+      </p>
+      <div class="flex flex-col items-start gap-200">
+        <Button href="#chon-cap" size="lg">
+          Chọn cấp học của bạn
+        </Button>
+        <p class="caption-2 text-text-tertiary">
+          {lessons.length} bài học, {problems.length} bài luyện có lời giải đã kiểm định,{' '}
+          {ALGORITHMS.length} thuật toán mô phỏng. Miễn phí, không cần tài khoản.
+        </p>
+      </div>
+    </div>
+    <div
+      class="min-w-0 rounded-24 border border-border-primary bg-surface-primary-subtle p-200 md:p-300"
+      aria-label="Mô phỏng sắp xếp nổi bọt chạy thử"
+    >
+      <Visualizer slug="sap-xep-noi-bot" compact />
+    </div>
+  </section>
+
+  <!-- Tiếp tục học: chỉ hiện khi trình duyệt đã có tiến độ -->
+  <section
+    aria-labelledby="tiep-tuc-title"
+    class="mx-auto w-full max-w-content px-200 pb-600 md:px-400"
+    data-continue={resumeData}
+    hidden
+  >
+    <div class="flex flex-col gap-200 rounded-16 border border-border-action-primary bg-surface-primary p-300 md:flex-row md:items-center">
+      <div class="flex min-w-0 flex-1 flex-col gap-50">
+        <h2 id="tiep-tuc-title" class="title-2 text-text-primary">
+          Chào mừng bạn quay lại
+        </h2>
+        <p class="body-6 text-text-secondary" data-continue-summary></p>
+      </div>
+      <div class="flex flex-wrap gap-100">
+        <Button href="/hoc" data-continue-lesson>
+          Học tiếp
+        </Button>
+        <Button href="/luyen-de" variant="secondary" data-continue-problem hidden>
+          Làm tiếp bài
+        </Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Chọn lộ trình -->
+  <section
+    id="chon-cap"
+    aria-labelledby="chon-cap-title"
+    class="mx-auto flex w-full max-w-content scroll-mt-900 flex-col gap-400 px-200 pb-900 md:px-400"
+    data-rise
+  >
+    <div class="flex max-w-hero flex-col gap-100">
+      <h2 id="chon-cap-title" class="heading-5 md:heading-3 text-text-primary">
+        Bạn đang học cấp nào?
+      </h2>
+      <p class="body-3 text-text-secondary">
+        Mỗi cấp có lộ trình riêng theo chương trình GDPT 2018 và kỳ thi tương ứng.
+      </p>
+    </div>
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-10">
+      {paths.map((p) => (
+        <li class:list={['flex', p.span]}>
+          <a
+            href={`/hoc/${p.level}`}
+            data-pick-level={p.level}
+            class="group flex w-full flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary p-300 transition duration-300 ease-base hover:border-border-action-primary hover:bg-surface-primary-hover active:translate-y-px"
+          >
+            <span class="heading-5 text-text-primary">{p.title}</span>
+            <span class="body-6 text-text-secondary">{p.outcome}</span>
+            <span class="caption-2 mt-auto text-text-tertiary">
+              {count(p.level)} bài học. {p.contest}.
+            </span>
+            <span class="button-sm text-text-info">
+              Bắt đầu lộ trình {LEVEL_INFO[p.level].label}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- 3. Vấn đề và giải pháp -->
+  <section
+    aria-labelledby="mat-diem"
+    class="mx-auto grid w-full max-w-content grid-cols-1 gap-400 px-200 pb-900 md:px-400 lg:grid-cols-5"
+    data-rise
+  >
+    <div class="flex flex-col gap-200 lg:col-span-2">
+      <h2 id="mat-diem" class="heading-5 md:heading-3 text-text-primary">
+        Vì sao bài đúng ý tưởng vẫn mất điểm
+      </h2>
+      <p class="body-3 text-text-secondary">
+        Nhiều bài mất điểm không phải vì thuật toán sai mà vì một chi tiết nhỏ khi đọc ghi file, đọc
+        đề hay chọn hàm của Python. Thư viện bẫy gom {TRAPS.length} lỗi như vậy, mỗi lỗi có code
+        sai, code đúng chạy thử được.
+      </p>
+      <a
+        href="/bay-thuong-gap"
+        class="body-4 inline-flex min-h-touch items-center text-text-info underline underline-offset-4 hover:text-text-primary"
+      >
+        Xem {TRAPS.length} bẫy thường gặp
+      </a>
+    </div>
+    <ul class="grid grid-cols-1 gap-200 sm:grid-cols-2 lg:col-span-3">
+      {trapPicks.map((t) => (
+        <li class="flex flex-col gap-100 rounded-16 border border-border-primary bg-surface-primary p-300">
+          <span class="inline-flex text-icon-warning">
+            <WarningIcon size={24} aria-hidden="true" />
+          </span>
+          <a
+            href={`/bay-thuong-gap/${t.slug}`}
+            class="title-3 inline-flex min-h-touch items-center text-text-primary underline-offset-4 hover:underline"
+          >
+            {t.title}
+          </a>
+          <p class="body-6 text-text-secondary">{t.signs}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- 4. Lợi ích -->
+  <section
+    aria-labelledby="loi-ich"
+    class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pb-900 md:px-400"
+    data-rise
+  >
+    <h2 id="loi-ich" class="heading-5 md:heading-3 max-w-hero text-text-primary">
+      Một nơi cho cả học, xem và luyện
+    </h2>
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-6">
+      {benefits.map(({ icon: Icon, title, text, href, span }) => (
+        <li class:list={['flex', span]}>
+          <a
+            href={href}
+            class="flex w-full flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary-subtle p-300 transition duration-300 ease-base hover:bg-surface-primary-hover active:translate-y-px"
+          >
+            <span class="inline-flex size-600 items-center justify-center rounded-12 bg-surface-info-subtle text-icon-info-inverted">
+              <Icon size={24} aria-hidden="true" />
+            </span>
+            <span class="title-2 text-text-primary">{title}</span>
+            <span class="body-6 text-text-secondary">{text}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- 5. Câu khẩu hiệu hiện từng chữ -->
+  <section aria-label="Khẩu hiệu" class="mx-auto w-full max-w-content px-200 py-900 md:px-400">
+    <p class="heading-4 md:heading-3 max-w-hero text-text-primary" data-word-reveal>
+      {tagline.map((line, i) => (
+        <>
+          {i > 0 && <br />}
+          {line.map((word) => (
+            <>
+              <span class="reveal-word">{word}</span>{' '}
+            </>
+          ))}
+        </>
+      ))}
+    </p>
+  </section>
+
+  <!-- 6. Cách hoạt động -->
+  <section
+    aria-labelledby="cach-hoc"
+    class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pb-900 md:px-400"
+    data-rise
+  >
+    <h2 id="cach-hoc" class="heading-5 md:heading-3 text-text-primary">
+      Học theo ba bước
+    </h2>
+    <ol class="grid grid-cols-1 gap-200 md:grid-cols-3">
+      {steps.map((s, i) => (
+        <li class="flex flex-col gap-100 rounded-16 border border-border-primary p-300">
+          <span class="caption-3 inline-flex size-500 items-center justify-center rounded-full bg-surface-secondary text-text-primary">
+            {i + 1}
+          </span>
+          <span class="title-2 text-text-primary">{s.title}</span>
+          <span class="body-6 text-text-secondary">{s.text}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- 7. Bằng chứng trung thực -->
+  <section
+    aria-labelledby="kiem-dinh"
+    class="mx-auto w-full max-w-content px-200 pb-900 md:px-400"
+    data-rise
+  >
+    <div class="flex flex-col gap-200 rounded-24 border border-border-primary bg-surface-primary p-300 md:p-500">
+      <h2 id="kiem-dinh" class="heading-5 md:heading-4 max-w-hero text-text-primary">
+        Lời giải được kiểm định trước khi xuất bản
+      </h2>
+      <dl class="grid grid-cols-1 gap-200 sm:grid-cols-3">
+        <div class="flex flex-col gap-25">
+          <dt class="caption-2 text-text-tertiary">Test chính thức của các bài</dt>
+          <dd class="heading-5 text-text-primary">{totalTests}</dd>
+        </div>
+        <div class="flex flex-col gap-25">
+          <dt class="caption-2 text-text-tertiary">Bộ test đối chiếu với lời giải trâu</dt>
+          <dd class="heading-5 text-text-primary">{totalStress}</dd>
+        </div>
+        <div class="flex flex-col gap-25">
+          <dt class="caption-2 text-text-tertiary">Câu đố tư duy tự biên soạn</dt>
+          <dd class="heading-5 text-text-primary">{PUZZLES.length}</dd>
+        </div>
+      </dl>
+      <p class="body-6 text-text-secondary">
+        Mỗi bài có một lời giải tối ưu và một lời giải trâu viết theo cách khác; hai lời giải phải
+        cho cùng kết quả trên mọi bộ test ngẫu nhiên, và lời giải phải chạy kịp giới hạn thời gian
+        trên bộ test lớn nhất. Bài chưa qua kiểm định không hiện trên trang.
+      </p>
+    </div>
+  </section>
+
+  <!-- 8. FAQ -->
+  <section
+    aria-labelledby="hoi-dap"
+    class="mx-auto flex w-full max-w-content flex-col gap-300 px-200 pb-900 md:px-400"
+    data-rise
+  >
+    <h2 id="hoi-dap" class="heading-5 md:heading-3 text-text-primary">
+      Câu hỏi thường gặp
+    </h2>
+    <div class="flex max-w-reading flex-col gap-100">
+      {faq.map((f) => (
+        <Accordion title={f.q} name="faq">
+          <p>{f.a}</p>
+        </Accordion>
+      ))}
+    </div>
+    <script
+      type="application/ld+json"
+      set:html={/* design-lint-ignore: dữ liệu repo */ faqJsonLd}
+    />
+  </section>
+
+  <!-- 9. Kêu gọi cuối -->
+  <section class="mx-auto w-full max-w-content px-200 pb-600 md:px-400">
+    <div class="flex flex-col items-start gap-200 rounded-24 bg-surface-secondary p-300 md:p-600">
+      <h2 class="heading-5 md:heading-3 max-w-hero text-text-primary">
+        Bắt đầu từ cấp học của bạn
+      </h2>
+      <p class="body-3 max-w-hero text-text-secondary">
+        Miễn phí, không cần tài khoản, tiến độ lưu ngay trên máy bạn.
+      </p>
+      <Button href="#chon-cap" size="lg">
+        Chọn cấp học của bạn
+      </Button>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { loadProgress, streak } from '../lib/progress';
+  import { readStorage, writeStorage } from '../lib/storage';
+
+  // Ô "Tiếp tục học" giống các web học lập trình: bài học kế tiếp và bài luyện đang làm dở.
+  const box = document.querySelector<HTMLElement>('[data-continue]');
+  if (box) {
+    type Data = {
+      lessons: { id: string; level: string; title: string }[];
+      problems: { id: string; title: string }[];
+    };
+    const data = JSON.parse(box.dataset.continue ?? '{}') as Data;
+    const p = loadProgress();
+    const learned = Object.keys(p.lessons);
+    const tried = Object.entries(p.problems);
+    if (learned.length + tried.length > 0) {
+      const level = readStorage('level');
+      const lastLesson = learned.sort((a, b) => (p.lessons[b]!.at > p.lessons[a]!.at ? 1 : -1))[0];
+      const levelOf =
+        data.lessons.find((l) => l.id === lastLesson)?.level ??
+        (level && level !== 'all' ? level : 'thcs');
+      const next = data.lessons.find((l) => l.level === levelOf && !p.lessons[l.id]);
+      const solved = tried.filter(([, v]) => v.best >= 100).length;
+      const days = streak(p.days);
+      box.querySelector('[data-continue-summary]')!.textContent =
+        `Bạn đã học ${learned.length} bài, đạt 100% ${solved} bài luyện đề` +
+        (days > 1 ? `, chuỗi ${days} ngày liên tiếp.` : '.');
+      const lessonLink = box.querySelector<HTMLAnchorElement>('[data-continue-lesson]')!;
+      if (next) {
+        lessonLink.href = `/hoc/${next.id}`;
+        lessonLink.textContent = `Học tiếp: ${next.title}`;
+      } else {
+        lessonLink.href = `/hoc/${levelOf}`;
+        lessonLink.textContent = 'Xem lại lộ trình';
+      }
+      const doing = tried
+        .filter(([, v]) => v.best < 100)
+        .sort((a, b) => (b[1].at > a[1].at ? 1 : -1))[0];
+      const problem = doing && data.problems.find((x) => x.id === doing[0]);
+      const problemLink = box.querySelector<HTMLAnchorElement>('[data-continue-problem]')!;
+      if (problem) {
+        problemLink.href = `/luyen-de/${problem.id}`;
+        problemLink.textContent = `Làm tiếp: ${problem.title}`;
+        problemLink.hidden = false;
+      }
+      box.hidden = false;
+    }
+  }
+
+  // Chọn một lộ trình thì nhớ cấp học cho toàn trang.
+  document.querySelectorAll<HTMLAnchorElement>('[data-pick-level]').forEach((link) => {
+    link.addEventListener('click', () => {
+      writeStorage('level', link.dataset.pickLevel ?? 'all');
+    });
+  });
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    // Section hiện lên một lần khi cuộn tới (chỉ áp cho section chưa nằm trong màn hình).
+    const rise = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-in');
+          rise.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px' },
+    );
+    document.querySelectorAll<HTMLElement>('[data-rise]').forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) return;
+      el.classList.add('js-rise');
+      rise.observe(el);
+    });
+
+    // Câu khẩu hiệu: từng chữ sáng dần theo thứ tự đọc khi đi qua đường kích hoạt ở 60% màn hình.
+    const tagline = document.querySelector<HTMLElement>('[data-word-reveal]');
+    if (tagline) {
+      tagline.classList.add('js-reveal');
+      const words = [...tagline.querySelectorAll<HTMLElement>('.reveal-word')];
+      const words_io = new IntersectionObserver(
+        (entries) => {
+          const lit = entries.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement);
+          lit.sort((a, b) => words.indexOf(a) - words.indexOf(b));
+          lit.forEach((word, i) => {
+            word.style.transitionDelay = `${i * 70}ms`;
+            word.classList.add('is-lit');
+            words_io.unobserve(word);
+          });
+        },
+        { rootMargin: '0px 0px -40% 0px' },
+      );
+      words.forEach((w) => words_io.observe(w));
+    }
+  }
+</script>

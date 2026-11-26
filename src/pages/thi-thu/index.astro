@@ -1,0 +1,71 @@
+---
+import { ClockIcon, ListNumbersIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Card from '../../components/ui/Card.astro';
+import SourceBadge from '../../components/ui/SourceBadge.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { CONTEST_LABEL } from '../../data/contests';
+import { MOCK_EXAMS } from '../../data/mock-exams';
+import { LEVEL_INFO } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProblems } from '../../lib/content';
+
+const verified = new Set((await getProblems()).map((p) => p.id));
+const exams = MOCK_EXAMS.filter((e) => e.problems.every((p) => verified.has(p.id)));
+---
+
+<BaseLayout
+  title="Thi thử"
+  description="Làm đề luyện ghép nhiều bài có đồng hồ đếm ngược, tự lưu code, chấm tự động khi nộp bài, rồi mới mở lời giải. Cấu trúc HSG THCS, THPT và Tin học trẻ."
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Thi thử"
+      crumbs={[]}
+      lead="Làm cả đề trong thời gian giới hạn như phòng thi. Code tự lưu, đồng hồ vẫn chạy đúng khi tải lại trang. Nộp bài hoặc hết giờ thì máy chấm tất cả và báo điểm từng bài."
+    />
+    <Callout kind="luu-y" title="Đề luyện, không phải đề chính thức">
+      <p>
+        Các đề ghép từ bài luyện biên soạn trong kho. Thời gian và thang điểm do trang chọn để luyện
+        tập, không thay cho thể lệ của kỳ thi thật.
+      </p>
+    </Callout>
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+      {exams.map((e) => (
+        <li class="flex">
+          <Card href={`/thi-thu/${e.id}`} class="w-full">
+            <SourceBadge kind="original" />
+            <p class="title-2 text-text-primary">{e.title}</p>
+            <p class="body-6 text-text-secondary">{e.description}</p>
+            <div class="mt-auto flex flex-wrap gap-50">
+              <Tag>
+                <ClockIcon size={14} aria-hidden="true" />
+                {e.minutes} phút
+              </Tag>
+              <Tag>
+                <ListNumbersIcon size={14} aria-hidden="true" />
+                {e.problems.length} bài, {e.problems.reduce((s, p) => s + p.points, 0)} điểm
+              </Tag>
+              <Tag>{CONTEST_LABEL[e.contest]}</Tag>
+              <Tag>{LEVEL_INFO[e.level].label}</Tag>
+            </div>
+            <p class="caption-2 text-text-tertiary" data-exam-history={e.id} />
+          </Card>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress } from '../../lib/progress';
+
+  const history = loadProgress().exams;
+  document.querySelectorAll<HTMLElement>('[data-exam-history]').forEach((el) => {
+    const runs = history.filter((h) => h.id === el.dataset.examHistory);
+    if (runs.length === 0) return;
+    const best = Math.max(...runs.map((r) => r.score));
+    el.textContent = `Đã làm ${runs.length} lần, điểm cao nhất ${best}/${runs[0]!.max}.`;
+  });
+</script>

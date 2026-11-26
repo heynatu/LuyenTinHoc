@@ -1,0 +1,49 @@
+---
+import { DatabaseIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Card from '../../components/ui/Card.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { SQL_DATABASES, SQL_EXERCISES } from '../../data/sql';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Phòng thực hành SQL"
+  description={`Thực hành SQL lớp 11 ngay trên trình duyệt với ${SQL_DATABASES.length} cơ sở dữ liệu tiếng Việt và ${SQL_EXERCISES.length} bài tập chấm tự động: SELECT, WHERE, GROUP BY, JOIN, truy vấn con, INSERT, UPDATE, DELETE.`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-500 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Phòng thực hành SQL"
+      crumbs={[]}
+      lead="Chọn một cơ sở dữ liệu, xem sơ đồ bảng, viết câu lệnh và chạy ngay. Mỗi bài tập được chấm bằng cách so tập kết quả với lời giải. Dữ liệu là hư cấu."
+    >
+      <p class="body-6 text-text-secondary">
+        Mới bắt đầu? Đọc bài{' '}
+        <a
+          class="text-text-info underline underline-offset-4 hover:text-text-primary"
+          href="/hoc/thpt/co-so-du-lieu-va-sql"
+        >
+          Cơ sở dữ liệu quan hệ và SQL
+        </a>{' '}
+        trước.
+      </p>
+    </PageHeader>
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-3">
+      {SQL_DATABASES.map((db) => (
+        <li class="flex">
+          <Card href={`/sql/${db.id}`} class="w-full">
+            <span class="inline-flex text-icon-info">
+              <DatabaseIcon size={28} aria-hidden="true" />
+            </span>
+            <p class="title-2 text-text-primary">{db.title}</p>
+            <p class="body-6 text-text-secondary">{db.summary}</p>
+            <div class="mt-auto flex flex-wrap gap-50">
+              <Tag>{db.tables.length} bảng</Tag>
+              <Tag>{SQL_EXERCISES.filter((e) => e.db === db.id).length} bài tập</Tag>
+            </div>
+          </Card>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

@@ -1,0 +1,77 @@
+---
+/**
+ * Hộp thoại trên <dialog> gốc với showModal(): giữ focus bên trong, Escape đóng, đóng xong
+ * trình duyệt trả focus về nút đã mở. Mở bằng phần tử có data-dialog-open="<id>",
+ * đóng bằng phần tử có data-dialog-close bên trong, hoặc bấm ra ngoài vùng hộp thoại.
+ * Hộp bo 16, padding 24 (≥ 16 nên nút bên trong giữ bo 8 như mọi nút).
+ */
+import { XIcon } from '@phosphor-icons/react/ssr';
+import IconButton from './IconButton.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  description?: string;
+}
+const { id, title, description } = Astro.props;
+---
+
+<dialog
+  id={id}
+  class="ui-dialog m-auto w-full max-w-narrow rounded-16 border border-border-primary bg-surface-primary p-0 text-text-primary"
+  aria-labelledby={`${id}-title`}
+  aria-describedby={description ? `${id}-desc` : undefined}
+  data-dialog
+>
+  <div class="flex flex-col gap-300 p-300">
+    <div class="flex items-start justify-between gap-200">
+      <div class="flex flex-col gap-75">
+        <h2 id={`${id}-title`} class="heading-6 text-text-primary">
+          {title}
+        </h2>
+        {description && (
+          <p id={`${id}-desc`} class="body-6 text-text-secondary">
+            {description}
+          </p>
+        )}
+      </div>
+      <IconButton label="Đóng hộp thoại" data-dialog-close class="-mt-75 -mr-75">
+        <XIcon size={20} aria-hidden="true" />
+      </IconButton>
+    </div>
+    <div class="body-6 text-text-secondary">
+      <slot />
+    </div>
+    {Astro.slots.has('footer') && (
+      <div class="flex flex-wrap justify-end gap-100">
+        <slot name="footer" />
+      </div>
+    )}
+  </div>
+</dialog>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-dialog-open]').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      const dialog = document.getElementById(trigger.dataset.dialogOpen ?? '');
+      if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal();
+    });
+  });
+
+  document.querySelectorAll<HTMLDialogElement>('dialog[data-dialog]').forEach((dialog) => {
+    dialog.querySelectorAll<HTMLElement>('[data-dialog-close]').forEach((button) => {
+      button.addEventListener('click', () => dialog.close());
+    });
+    // Bấm vào nền mờ (ngoài khung) thì đóng.
+    dialog.addEventListener('click', (event) => {
+      if (event.target !== dialog) return;
+      const box = dialog.getBoundingClientRect();
+      const inside =
+        event.clientX >= box.left &&
+        event.clientX <= box.right &&
+        event.clientY >= box.top &&
+        event.clientY <= box.bottom;
+      if (!inside) dialog.close();
+    });
+  });
+</script>

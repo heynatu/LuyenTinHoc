@@ -1,0 +1,110 @@
+---
+/**
+ * Trắc nghiệm cuối bài (4 mức: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao).
+ * Chấm ngay trên trình duyệt; mỗi câu hiện đúng sai bằng icon và chữ kèm giải thích.
+ */
+import Button from '../ui/Button.astro';
+import Choice from '../ui/Choice.astro';
+
+type Item = {
+  q: string;
+  options: string[];
+  answer: number;
+  explain: string;
+  level: 'nhan-biet' | 'thong-hieu' | 'van-dung' | 'van-dung-cao';
+};
+
+interface Props {
+  id: string;
+  items: Item[];
+}
+
+const { id, items } = Astro.props;
+const LEVEL = {
+  'nhan-biet': 'Nhận biết',
+  'thong-hieu': 'Thông hiểu',
+  'van-dung': 'Vận dụng',
+  'van-dung-cao': 'Vận dụng cao',
+};
+const formId = `quiz-${id.replace(/[^a-z0-9]/g, '-')}`;
+---
+
+{items.length > 0 && (
+  <section aria-labelledby={`${formId}-title`} class="flex flex-col gap-300">
+    <h2 id={`${formId}-title`} class="heading-6 text-text-primary">
+      Tự kiểm tra
+    </h2>
+    <form class="flex flex-col gap-300" data-quiz={id}>
+      {items.map((item, i) => (
+        <fieldset
+          class="flex flex-col gap-75 rounded-16 border border-border-primary p-300"
+          data-quiz-item={i}
+          data-answer={item.answer}
+        >
+          <legend class="sr-only">Câu {i + 1}</legend>
+          <p class="caption-3 text-text-tertiary">
+            Câu {i + 1} · {LEVEL[item.level]}
+          </p>
+          <p class="body-2 text-text-primary">{item.q}</p>
+          <div class="flex flex-col">
+            {item.options.map((option, k) => (
+              <Choice
+                id={`${formId}-${i}-${k}`}
+                kind="radio"
+                name={`${formId}-${i}`}
+                value={String(k)}
+                label={option}
+              />
+            ))}
+          </div>
+          <p class="body-6 hidden" data-quiz-feedback>
+            {item.explain}
+          </p>
+        </fieldset>
+      ))}
+      <div class="flex flex-wrap items-center gap-200">
+        <Button buttonType="submit">Kiểm tra đáp án</Button>
+        <p class="body-4 text-text-primary" data-quiz-score aria-live="polite" />
+      </div>
+    </form>
+  </section>
+)}
+
+<script>
+  import { recordQuiz } from '../../lib/progress';
+
+  document.querySelectorAll<HTMLFormElement>('[data-quiz]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const items = [...form.querySelectorAll<HTMLElement>('[data-quiz-item]')];
+      let score = 0;
+      let unanswered = 0;
+      items.forEach((item) => {
+        const answer = Number(item.dataset.answer);
+        const picked = item.querySelector<HTMLInputElement>('input:checked');
+        const feedback = item.querySelector<HTMLElement>('[data-quiz-feedback]')!;
+        const explain = feedback.dataset.explain ?? feedback.textContent ?? '';
+        feedback.dataset.explain = explain;
+        if (!picked) {
+          unanswered += 1;
+          feedback.classList.remove('hidden');
+          feedback.className = 'body-6 text-text-warning';
+          feedback.textContent = 'Chưa chọn đáp án.';
+          return;
+        }
+        const right = Number(picked.value) === answer;
+        if (right) score += 1;
+        feedback.className = `body-6 ${right ? 'text-text-success' : 'text-text-error'}`;
+        feedback.textContent = `${right ? '✓ Đúng.' : '✗ Chưa đúng.'} ${explain}`;
+        item.classList.toggle('border-border-success', right);
+        item.classList.toggle('border-border-error', !right);
+      });
+      const scoreBox = form.querySelector<HTMLElement>('[data-quiz-score]')!;
+      scoreBox.textContent =
+        unanswered > 0
+          ? `Đúng ${score}/${items.length} câu. Còn ${unanswered} câu chưa chọn.`
+          : `Đúng ${score}/${items.length} câu.`;
+      if (unanswered === 0) recordQuiz(form.dataset.quiz ?? '', score, items.length);
+    });
+  });
+</script>

@@ -1,0 +1,238 @@
+---
+/**
+ * Bộ chấm thử của một bài (mục 2.6): chạy code trong ô soạn `labId` với bộ test đã kiểm định,
+ * kết quả từng test có icon và chữ, điểm theo tỉ lệ test đúng, tải bộ test dạng Themis.
+ * Logic ở src/lib/judge/; khung giao diện này không cần JavaScript để đọc được.
+ */
+import { DownloadSimpleIcon, GavelIcon, StopIcon } from '@phosphor-icons/react/ssr';
+import Button from '../ui/Button.astro';
+import { fieldClasses } from '../ui/recipes';
+
+interface Props {
+  problemId: string;
+  labId: string;
+  points: number;
+  timeMs: number;
+  program: string;
+  tests: number;
+  zipOnly: number;
+  /** Thi thử: ẩn nút tải test và không ghi tiến độ bài lẻ. */
+  exam?: boolean;
+}
+
+const { problemId, labId, points, timeMs, program, tests, zipOnly, exam = false } = Astro.props;
+const zipHref = `/judge/${problemId}/${program.replace(/\.PY$/, '')}_themis.zip`;
+const field = fieldClasses('interactive');
+---
+
+<section
+  class="flex flex-col gap-200 rounded-16 border border-border-primary bg-surface-primary p-300"
+  aria-labelledby={`${labId}-judge-title`}
+  data-judge={problemId}
+  data-judge-lab={labId}
+  data-judge-points={points}
+  data-judge-exam={exam ? 'true' : undefined}
+>
+  <div class="flex flex-wrap items-center justify-between gap-200">
+    <div class="flex flex-col gap-25">
+      <h2 id={`${labId}-judge-title`} class="title-2 text-text-primary">
+        Chấm thử
+      </h2>
+      <p class="caption-2 text-text-tertiary">
+        {tests} test đã kiểm định
+        {zipOnly > 0 ? `, thêm ${zipOnly} test cỡ lớn trong gói tải về` : ''}. Giới hạn{' '}
+        {timeMs / 1000} giây mỗi test.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-end gap-100">
+      <label class="flex flex-col gap-25">
+        <span class="title-5 text-text-secondary">Hệ số thời gian</span>
+        <select class:list={[field, 'w-auto pr-300']} data-judge-factor>
+          <option value="1">1 lần (như máy chấm)</option>
+          <option value="3" selected>
+            3 lần (mặc định)
+          </option>
+          <option value="5">5 lần (máy yếu)</option>
+        </select>
+      </label>
+      <Button data-judge-run>
+        <GavelIcon size={20} aria-hidden="true" />
+        Chấm thử
+      </Button>
+      <Button variant="secondary" data-judge-stop disabled>
+        <StopIcon size={20} aria-hidden="true" />
+        Dừng chấm
+      </Button>
+    </div>
+  </div>
+
+  <p class="body-6 text-text-secondary" data-judge-status aria-live="polite">
+    Bấm Chấm thử để chạy code của bạn với toàn bộ test. Code chạy ngay trên máy bạn, không gửi đi
+    đâu.
+  </p>
+
+  <div
+    data-judge-summary
+    hidden
+    class="flex flex-wrap items-center gap-200 rounded-12 bg-surface-primary-subtle p-200"
+  ></div>
+
+  <ol
+    data-judge-results
+    class="grid grid-cols-1 gap-75 sm:grid-cols-2"
+    aria-label="Kết quả từng test"
+  ></ol>
+
+  <div class="flex flex-wrap items-center justify-between gap-200">
+    <p class="caption-2 text-text-tertiary">
+      Thời gian đo trên trình duyệt chỉ là ước lượng, máy chấm thật có thể khác.
+    </p>
+    {!exam && (
+      <a
+        href={zipHref}
+        download
+        class="body-5 inline-flex min-h-touch items-center gap-75 rounded-8 text-text-info underline underline-offset-4 hover:text-text-primary"
+      >
+        <DownloadSimpleIcon size={20} aria-hidden="true" />
+        Tải bộ test dạng Themis
+      </a>
+    )}
+  </div>
+</section>
+
+<script>
+  import { judgeCode, loadTests, type TestResult } from '../../lib/judge/judge';
+  import { scorePerTest, VERDICT_LABEL } from '../../lib/judge/verdict';
+  import { getLab } from '../../lib/lab/python-lab';
+  import { getRunner } from '../../lib/python/runner';
+  import { recordProblem } from '../../lib/progress';
+  import { showToast } from '../../lib/toast';
+
+  const ICON: Record<string, string> = { ac: '✓', wa: '✗', tle: '⏱', re: '!', nofile: '?' };
+  const TONE: Record<string, string> = {
+    ac: 'border-border-success text-text-success',
+    wa: 'border-border-error text-text-error',
+    tle: 'border-border-warning text-text-primary',
+    re: 'border-border-error text-text-error',
+    nofile: 'border-border-error text-text-error',
+  };
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string) {
+    const node = document.createElement(tag);
+    node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-judge]').forEach((root) => {
+    const id = root.dataset.judge ?? '';
+    const labId = root.dataset.judgeLab ?? '';
+    const points = Number(root.dataset.judgePoints ?? '0');
+    const exam = root.dataset.judgeExam === 'true';
+    const runButton = root.querySelector<HTMLButtonElement>('[data-judge-run]')!;
+    const stopButton = root.querySelector<HTMLButtonElement>('[data-judge-stop]')!;
+    const factorSelect = root.querySelector<HTMLSelectElement>('[data-judge-factor]')!;
+    const status = root.querySelector<HTMLElement>('[data-judge-status]')!;
+    const list = root.querySelector<HTMLOListElement>('[data-judge-results]')!;
+    const summary = root.querySelector<HTMLElement>('[data-judge-summary]')!;
+    let stopping = false;
+
+    const row = (r: TestResult) => {
+      const item = el(
+        'li',
+        `flex items-center justify-between gap-100 rounded-8 border px-100 py-75 ${TONE[r.verdict]}`,
+      );
+      const left = el('span', 'body-5 flex items-center gap-75');
+      left.append(
+        el('span', 'font-mono', ICON[r.verdict]),
+        document.createTextNode(`${r.test.name}: ${VERDICT_LABEL[r.verdict]}`),
+      );
+      item.append(
+        left,
+        el(
+          'span',
+          'caption-2 text-text-tertiary',
+          r.verdict === 'tle' ? '' : `${Math.max(1, Math.round(r.timeMs))} ms`,
+        ),
+      );
+      return item;
+    };
+
+    async function run() {
+      const lab = getLab(labId);
+      if (!lab) return;
+      stopping = false;
+      runButton.disabled = true;
+      stopButton.disabled = false;
+      root.setAttribute('aria-busy', 'true');
+      list.replaceChildren();
+      summary.hidden = true;
+      status.textContent = 'Đang tải bộ test…';
+      try {
+        const data = await loadTests(id);
+        if (getRunner().state !== 'ready')
+          status.textContent = 'Đang tải Python. Lần đầu tải khoảng 13 MB.';
+        const factor = Number(factorSelect.value) || 3;
+        const results = await judgeCode(lab.getCode(), data, {
+          factor,
+          shouldStop: () => stopping,
+          onResult: (r) => {
+            list.append(row(r));
+            status.textContent = `Đã chấm ${r.index + 1}/${data.tests.length} test.`;
+          },
+        });
+        const done = results.length === data.tests.length;
+        const s = scorePerTest(
+          results.map((r) => r.verdict),
+          points,
+        );
+        summary.replaceChildren(
+          el('span', 'title-2 text-text-primary', `${s.correct}/${data.tests.length} test đúng`),
+          el(
+            'span',
+            'body-5 text-text-secondary',
+            `Ước tính ${s.score}/${points} điểm (${s.percent}%)`,
+          ),
+        );
+        summary.hidden = false;
+        if (!done) {
+          status.textContent = 'Đã dừng chấm. Kết quả chỉ tính các test đã chạy.';
+        } else {
+          status.textContent =
+            s.percent === 100 ? 'Đúng hết các test.' : 'Chấm xong. Xem các test sai để sửa code.';
+          if (!exam) {
+            recordProblem(id, s.percent, data.tests.length);
+            showToast({
+              tone: s.percent === 100 ? 'success' : 'info',
+              message:
+                s.percent === 100
+                  ? 'Đúng hết các test. Đã lưu vào tiến độ của bạn.'
+                  : `Đúng ${s.correct}/${data.tests.length} test. Đã lưu kết quả tốt nhất.`,
+            });
+          }
+          root.dispatchEvent(
+            new CustomEvent('tdt:judged', {
+              bubbles: true,
+              detail: { id, score: s.score, percent: s.percent },
+            }),
+          );
+        }
+      } catch (error) {
+        status.textContent =
+          error instanceof Error
+            ? `${error.message} Kiểm tra kết nối mạng rồi thử lại.`
+            : 'Không chấm được. Thử lại sau.';
+      } finally {
+        runButton.disabled = false;
+        stopButton.disabled = true;
+        root.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    runButton.addEventListener('click', () => void run());
+    stopButton.addEventListener('click', () => {
+      stopping = true;
+      getRunner().stop();
+    });
+  });
+</script>

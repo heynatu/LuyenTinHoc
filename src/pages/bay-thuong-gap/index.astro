@@ -1,0 +1,54 @@
+---
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Card from '../../components/ui/Card.astro';
+import { TRAP_GROUPS, TRAPS, type TrapGroup } from '../../data/traps';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { trapUrl } from '../../lib/content';
+
+const groups = Object.keys(TRAP_GROUPS) as TrapGroup[];
+const severe = TRAPS.filter((t) => t.severity === 'mat-trang').length;
+---
+
+<BaseLayout
+  title="Bẫy thường gặp"
+  description={`${TRAPS.length} lỗi làm học sinh mất điểm trong phòng thi tin học: sai tên file, đọc dữ liệu chậm, chia số âm, làm tròn kiểu ngân hàng, đệ quy quá sâu. Mỗi bẫy có code sai, code đúng.`}
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-700 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Bẫy thường gặp"
+      crumbs={[]}
+      lead={`${TRAPS.length} lỗi hay làm mất điểm, trong đó ${severe} lỗi có thể làm mất trắng cả bài. Mỗi mục có dấu hiệu nhận biết, code sai và code đúng chạy thử được ngay.`}
+    />
+    <nav aria-label="Nhóm bẫy" class="flex flex-wrap gap-75">
+      {groups.map((g) => (
+        <a
+          href={`#${g}`}
+          class="caption-4 touch-target inline-flex min-h-touch items-center rounded-full border border-border-primary px-200 text-text-secondary transition duration-300 ease-base hover:bg-surface-primary-hover hover:text-text-primary"
+        >
+          {TRAP_GROUPS[g]} ({TRAPS.filter((t) => t.group === g).length})
+        </a>
+      ))}
+    </nav>
+    {groups.map((g) => (
+      <section id={g} aria-labelledby={`${g}-title`} class="flex scroll-mt-900 flex-col gap-300">
+        <h2 id={`${g}-title`} class="heading-5 text-text-primary">
+          {TRAP_GROUPS[g]}
+        </h2>
+        <ul class="grid grid-cols-1 gap-200 md:grid-cols-2 xl:grid-cols-3">
+          {TRAPS.filter((t) => t.group === g).map((t) => (
+            <li class="flex">
+              <Card href={trapUrl(t.slug)} class="w-full">
+                <Badge tone={t.severity === 'mat-trang' ? 'error' : 'warning'}>
+                  {t.severity === 'mat-trang' ? 'Có thể mất trắng bài' : 'Mất một phần điểm'}
+                </Badge>
+                <p class="title-2 text-text-primary">{t.title}</p>
+                <p class="body-6 text-text-secondary">{t.signs}</p>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

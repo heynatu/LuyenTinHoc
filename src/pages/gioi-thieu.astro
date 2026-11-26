@@ -1,0 +1,74 @@
+---
+import PageShell from '../layouts/PageShell.astro';
+import { isPlaceholder, SITE } from '../site.config';
+
+const emailReady = !isPlaceholder(SITE.contactEmail);
+---
+
+<PageShell
+  title="Giới thiệu"
+  description="Tư Duy Tin là website miễn phí giúp học sinh Tiểu học, THCS, THPT học tin học theo chương trình GDPT 2018 và luyện thi học sinh giỏi."
+  lead="Tư Duy Tin là website miễn phí, không cần tài khoản, giúp học sinh từ Tiểu học đến THPT học tin học theo chương trình GDPT 2018, rèn tư duy thuật toán và luyện thi học sinh giỏi, Tin học trẻ."
+>
+  <h2>Mục tiêu</h2>
+  <p>
+    Giúp học sinh hiểu vì sao một thuật toán đúng, không chỉ chép lời giải. Mỗi chủ đề đi từ ví dụ
+    nhỏ chạy tay, tới mô phỏng từng bước, tới bài tập có chấm thử, rồi tới đề luyện theo cấu trúc kỳ
+    thi.
+  </p>
+
+  <h2>Website có những gì</h2>
+  <ul>
+    <li>Lộ trình học theo chương trình môn Tin học GDPT 2018 cho từng cấp, từng lớp.</li>
+    <li>Mô phỏng thuật toán chạy từng bước, tùy chỉnh được dữ liệu và tham số.</li>
+    <li>Phòng lập trình Python và phòng thực hành SQL chạy ngay trên trình duyệt.</li>
+    <li>Kho đề luyện thi có giả mã, lời giải Python, chấm thử và phân tích bẫy hay gặp.</li>
+    <li>Cẩm nang phòng thi và thư viện các lỗi khiến bài đúng ý tưởng vẫn mất điểm.</li>
+  </ul>
+  <p>
+    Bắt đầu từ <a href="/hoc">lộ trình học</a>, <a href="/mo-phong">mô phỏng</a>,{' '}
+    <a href="/luyen-de">luyện đề</a>,<a href="/tu-duy">rèn luyện tư duy</a> hoặc{' '}
+    <a href="/cam-nang">cẩm nang</a>.
+  </p>
+
+  <h2>Lời giải được kiểm chứng thế nào</h2>
+  <p>
+    Mỗi bài trong kho đề có một lời giải tối ưu và một lời giải trâu viết theo cách khác. Trước khi
+    xuất bản, hai lời giải được chạy đối chiếu trên ít nhất 300 bộ dữ liệu ngẫu nhiên, đo thời gian
+    chạy trên bộ test lớn nhất và kiểm tra để chạy được trên Python 3.8 (máy chấm ở nhiều phòng thi
+    dùng bản cũ). Bài chưa qua kiểm định sẽ không hiện trên website.
+  </p>
+
+  <h2>Đề trên website đến từ đâu</h2>
+  <p>Mỗi bài ghi rõ một trong ba nhãn nguồn:</p>
+  <ul>
+    <li>
+      <strong>Đề chính thức:</strong> đề gốc của kỳ thi, ghi đầy đủ đơn vị ra đề, kỳ thi, năm học.
+    </li>
+    <li>
+      <strong>Phỏng theo:</strong> dựa trên một đề gốc nhưng đã đổi câu chữ hoặc số liệu.
+    </li>
+    <li>
+      <strong>Đề luyện biên soạn:</strong> đề mới viết theo cấu trúc của một kỳ thi. Đề loại này
+      không bao giờ được gắn tên kỳ thi và năm cụ thể.
+    </li>
+  </ul>
+  <p>
+    Từ ngày 01/7/2025, tỉnh Bình Định hợp nhất vào tỉnh Gia Lai mới. Đề từ năm học 2025 đến 2026 trở
+    đi mang nhãn Gia Lai (mới); đề các năm trước giữ đúng tên tỉnh cũ.
+  </p>
+
+  <h2>Ai biên soạn</h2>
+  <p>Website do {SITE.organization} biên soạn và duy trì.</p>
+
+  <h2>Báo lỗi nội dung</h2>
+  <p>
+    Nếu thấy lời giải sai, đề mơ hồ hoặc thông tin kỳ thi chưa chính xác, hãy gửi thư tới
+    {emailReady ? (
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+    ) : (
+      <strong>{SITE.contactEmail}</strong>
+    )}
+    , kèm đường dẫn trang và mô tả ngắn.
+  </p>
+</PageShell>

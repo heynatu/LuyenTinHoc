@@ -1,0 +1,23 @@
+---
+/** Nhãn nguồn đề (mục 4.8): Đề chính thức, Phỏng theo đề gốc, Đề luyện biên soạn. */
+import { NotePencilIcon, PencilSimpleLineIcon, SealCheckIcon } from '@phosphor-icons/react/ssr';
+import { SOURCE_LABELS, type SourceKind } from '../../lib/ui-logic';
+import Badge from './Badge.astro';
+import type { Tone } from './recipes';
+
+interface Props {
+  kind: SourceKind;
+}
+const { kind } = Astro.props;
+const look: Record<SourceKind, { tone: Tone; icon: typeof SealCheckIcon }> = {
+  official: { tone: 'success', icon: SealCheckIcon },
+  adapted: { tone: 'info', icon: PencilSimpleLineIcon },
+  original: { tone: 'neutral', icon: NotePencilIcon },
+};
+const { tone, icon: Icon } = look[kind];
+---
+
+<Badge tone={tone}>
+  <Icon slot="icon" size={14} aria-hidden="true" />
+  {SOURCE_LABELS[kind]}
+</Badge>

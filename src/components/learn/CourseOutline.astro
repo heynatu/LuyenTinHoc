@@ -1,0 +1,97 @@
+---
+/**
+ * Mục lục lộ trình bên cạnh bài học (kiểu các web học lập trình): mọi bài cùng cấp, bài đang xem
+ * được đánh dấu, bài đã học có dấu tích, thanh tiến độ "đã học x/y". Tiến độ đọc từ localStorage,
+ * nên khi không có JavaScript mục lục vẫn dùng được như danh sách link.
+ */
+import { CheckCircleIcon, CircleIcon } from '@phosphor-icons/react/ssr';
+import { lessonUrl } from '../../lib/content';
+
+interface Props {
+  title: string;
+  current: string;
+  items: { id: string; title: string; minutes: number; group: string }[];
+  /** compact: bản thu gọn trong <details> cho màn hình hẹp. */
+  compact?: boolean;
+}
+
+const { title, current, items, compact = false } = Astro.props;
+const groups = [...new Set(items.map((i) => i.group))];
+const index = items.findIndex((i) => i.id === current);
+---
+
+<nav aria-label={`Mục lục ${title}`} class="flex flex-col gap-200" data-outline>
+  {!compact && (
+    <div class="flex flex-col gap-75">
+      <p class="title-3 text-text-primary">{title}</p>
+      <p class="caption-2 text-text-tertiary">
+        Bài {index + 1}/{items.length}.{' '}
+        <span data-outline-count>Chưa đánh dấu bài nào đã học.</span>
+      </p>
+      <div class="h-75 w-full overflow-hidden rounded-full bg-surface-secondary" aria-hidden="true">
+        <div
+          class="h-full w-0 rounded-full bg-action-primary transition-transform duration-500 ease-base"
+          data-outline-bar
+        />
+      </div>
+    </div>
+  )}
+  {groups.map((group) => (
+    <div class="flex flex-col gap-25">
+      <p class="caption-3 px-100 text-text-tertiary">{group}</p>
+      <ol class="flex flex-col gap-25">
+        {items
+          .filter((i) => i.group === group)
+          .map((item) => (
+            <li>
+              <a
+                href={lessonUrl(item.id)}
+                aria-current={item.id === current ? 'page' : undefined}
+                data-outline-item={item.id}
+                class="body-6 flex min-h-touch items-center gap-75 rounded-8 px-100 py-50 text-text-secondary transition duration-300 ease-base hover:bg-surface-primary-hover hover:text-text-primary current:bg-surface-primary-selected current:text-text-primary"
+              >
+                <span class="inline-flex shrink-0 text-icon-subtle" data-outline-todo>
+                  <CircleIcon size={16} aria-hidden="true" />
+                </span>
+                <span class="inline-flex shrink-0 text-icon-success" data-outline-done hidden>
+                  <CheckCircleIcon size={16} weight="fill" aria-hidden="true" />
+                </span>
+                <span class="min-w-0 flex-1">{item.title}</span>
+                <span class="sr-only" data-outline-sr />
+              </a>
+            </li>
+          ))}
+      </ol>
+    </div>
+  ))}
+</nav>
+
+<script>
+  import { loadProgress } from '../../lib/progress';
+
+  function paint() {
+    const done = loadProgress().lessons;
+    document.querySelectorAll<HTMLElement>('[data-outline]').forEach((nav) => {
+      const items = [...nav.querySelectorAll<HTMLElement>('[data-outline-item]')];
+      let count = 0;
+      for (const item of items) {
+        const isDone = Boolean(done[item.dataset.outlineItem ?? '']);
+        if (isDone) count += 1;
+        const todo = item.querySelector<HTMLElement>('[data-outline-todo]');
+        const check = item.querySelector<HTMLElement>('[data-outline-done]');
+        if (todo) todo.hidden = isDone;
+        if (check) check.hidden = !isDone;
+        const sr = item.querySelector('[data-outline-sr]');
+        if (sr) sr.textContent = isDone ? ' (đã học)' : '';
+      }
+      const label = nav.querySelector('[data-outline-count]');
+      if (label)
+        label.textContent =
+          count > 0 ? `Đã học ${count}/${items.length} bài.` : 'Chưa đánh dấu bài nào đã học.';
+      const bar = nav.querySelector<HTMLElement>('[data-outline-bar]');
+      if (bar) bar.style.width = `${items.length ? Math.round((count / items.length) * 100) : 0}%`;
+    });
+  }
+  paint();
+  document.addEventListener('tdt:progress', paint);
+</script>

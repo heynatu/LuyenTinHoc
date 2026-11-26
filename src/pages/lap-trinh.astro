@@ -1,0 +1,36 @@
+---
+import PythonLab from '../components/lab/PythonLab.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import Callout from '../components/ui/Callout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Phòng lập trình Python"
+  description="Viết và chạy Python ngay trên trình duyệt, không cần cài đặt: đọc ghi file như phòng thi, lỗi giải thích bằng tiếng Việt, theo dõi từng dòng."
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-400 px-200 pt-600 md:px-400">
+    <header class="flex max-w-hero flex-col gap-200">
+      <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Phòng lập trình' }]} />
+      <h1 class="heading-4 md:heading-3 text-text-primary">Phòng lập trình Python</h1>
+      <p class="body-3 text-text-secondary">
+        Viết và chạy Python ngay trên trình duyệt. Code chạy trên máy của bạn, không gửi đi đâu. Bật
+        chế độ đọc ghi file để luyện đúng như phòng thi.
+      </p>
+    </header>
+
+    <PythonLab id="lab" storageKey="lab:main" share />
+
+    <div class="grid grid-cols-1 gap-200 md:grid-cols-2">
+      <Callout kind="luu-y" title="Khác với máy chấm thật">
+        <p>
+          Python trên trình duyệt chậm hơn máy chấm vài lần và chỉ có thư viện chuẩn. Thời gian chạy
+          ở đây chỉ để tham khảo.
+        </p>
+      </Callout>
+      <Callout kind="meo" title="Phím tắt">
+        <p>Ctrl+Enter để chạy. Trong ô code, Tab để thụt lề; Esc rồi Tab để rời ô code.</p>
+      </Callout>
+    </div>
+  </div>
+</BaseLayout>

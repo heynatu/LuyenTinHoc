@@ -1,0 +1,101 @@
+---
+import { ArrowRightIcon } from '@phosphor-icons/react/ssr';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Card from '../../components/ui/Card.astro';
+import { GRADES, STRANDS } from '../../data/curriculum';
+import { LEVEL_INFO, LEVEL_KEYS } from '../../data/taxonomy';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLessons } from '../../lib/content';
+
+const lessons = await getLessons();
+const count = (level: string) => lessons.filter((l) => l.data.level === level).length;
+---
+
+<BaseLayout
+  title="Lộ trình học"
+  description="Lộ trình học tin học theo Chương trình GDPT 2018 cho Tiểu học, THCS, THPT, kèm bài bồi dưỡng học sinh giỏi, có ví dụ chạy được và trắc nghiệm."
+>
+  <div class="mx-auto flex w-full max-w-content flex-col gap-700 px-200 pt-600 md:px-400">
+    <PageHeader
+      title="Lộ trình học"
+      crumbs={[]}
+      lead="Bài học theo Chương trình GDPT 2018 môn Tin học, tập trung vào mạch giải quyết vấn đề với sự trợ giúp của máy tính (thuật toán, lập trình), kèm phần bồi dưỡng học sinh giỏi."
+    />
+
+    <ul class="grid grid-cols-1 gap-200 md:grid-cols-3">
+      {LEVEL_KEYS.map((level) => (
+        <li class="flex" data-level={level}>
+          <Card href={`/hoc/${level}`} class="w-full">
+            <p class="heading-6 text-text-primary">{LEVEL_INFO[level].label}</p>
+            <p class="caption-2 text-text-tertiary">
+              Lớp {LEVEL_INFO[level].grades[0]} đến {LEVEL_INFO[level].grades.at(-1)} ·{' '}
+              {count(level)} bài
+            </p>
+            <p class="body-6 text-text-secondary">{LEVEL_INFO[level].summary}</p>
+            <span class="body-5 mt-auto inline-flex items-center gap-50 text-text-info">
+              Xem lộ trình
+              <ArrowRightIcon size={16} aria-hidden="true" />
+            </span>
+          </Card>
+        </li>
+      ))}
+    </ul>
+
+    <section aria-labelledby="khung" class="flex flex-col gap-300">
+      <h2 id="khung" class="heading-5 text-text-primary">
+        Trọng tâm từng lớp
+      </h2>
+      <div
+        class="overflow-x-auto rounded-12 border border-border-primary"
+        role="region"
+        aria-label="Bảng trọng tâm từng lớp"
+        tabindex="0"
+      >
+        <table class="w-full min-w-max border-collapse">
+          <thead>
+            <tr class="bg-surface-secondary">
+              <th scope="col" class="caption-3 px-200 py-100 text-left text-text-tertiary">
+                Lớp
+              </th>
+              <th scope="col" class="caption-3 px-200 py-100 text-left text-text-tertiary">
+                Trọng tâm trên Tư Duy Tin
+              </th>
+              <th scope="col" class="caption-3 px-200 py-100 text-left text-text-tertiary">
+                Công cụ
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(GRADES).map(([grade, info]) => (
+              <tr>
+                <th scope="row" class="body-4 px-200 py-100 text-left text-text-primary">
+                  Lớp {grade}
+                </th>
+                <td class="body-6 max-w-hero px-200 py-100 text-text-secondary">{info.focus}</td>
+                <td class="body-6 px-200 py-100 text-text-tertiary">{info.tools}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Callout kind="luu-y" title="Về khung chương trình">
+        <p>
+          Chương trình gồm 7 mạch nội dung:{' '}
+          {Object.entries(STRANDS)
+            .map(([k, v]) => `${k}. ${v}`)
+            .join('; ')}
+          . Website tập trung vào mạch F. Bảng trên là định hướng biên soạn; khi thầy cô dạy, hãy
+          đối chiếu với văn bản chương trình (Thông tư 32/2018/TT-BGDĐT) và sách giáo khoa đang
+          dùng.
+        </p>
+      </Callout>
+      <Callout kind="meo" title="THCS và Python">
+        <p>
+          Sách giáo khoa THCS dùng Scratch. Python ở cấp THCS trên website là phần mở rộng để luyện
+          thi học sinh giỏi lớp 9; hãy xem ngôn ngữ được phép trong hồ sơ từng kỳ thi.
+        </p>
+      </Callout>
+    </section>
+  </div>
+</BaseLayout>

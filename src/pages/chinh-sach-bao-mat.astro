@@ -1,0 +1,68 @@
+---
+import PageShell from '../layouts/PageShell.astro';
+import { isPlaceholder, SITE } from '../site.config';
+
+const emailReady = !isPlaceholder(SITE.contactEmail);
+---
+
+<PageShell
+  title="Chính sách bảo mật"
+  description="Tư Duy Tin không có tài khoản, không dùng cookie và không thu thập dữ liệu cá nhân của học sinh."
+  lead="Tóm tắt: website không có tài khoản, không dùng cookie, không thu thập dữ liệu cá nhân. Những gì bạn lưu chỉ nằm trong trình duyệt trên máy của bạn."
+  updated="22/11/2026 (bản nháp)"
+>
+  <h2>Chúng tôi không thu thập gì</h2>
+  <ul>
+    <li>Không có đăng ký, đăng nhập hay tài khoản người dùng.</li>
+    <li>Không có biểu mẫu gửi dữ liệu về máy chủ.</li>
+    <li>Không dùng cookie, không dùng công cụ quảng cáo hay theo dõi hành vi.</li>
+    <li>
+      Code bạn viết trong phòng lập trình chạy ngay trên trình duyệt của bạn, không gửi đi đâu.
+    </li>
+  </ul>
+
+  <h2>Những gì được lưu trên máy của bạn</h2>
+  <p>
+    Website dùng bộ nhớ cục bộ của trình duyệt (localStorage) để nhớ các lựa chọn của bạn. Dữ liệu
+    này chỉ nằm trên thiết bị bạn đang dùng, chúng tôi không đọc được.
+  </p>
+  <ul>
+    <li>Giao diện sáng, tối hoặc theo hệ thống.</li>
+    <li>Cấp học đang theo dõi.</li>
+    <li>Khi các khu vực học tập mở: bài đã làm, code nháp, kết quả chấm thử và thi thử.</li>
+  </ul>
+  <p>
+    Nếu trình duyệt chặn bộ nhớ cục bộ (ví dụ chế độ ẩn danh), website vẫn dùng được bình thường,
+    chỉ là không nhớ lựa chọn khi bạn quay lại.
+  </p>
+
+  <h2>Cách xóa dữ liệu</h2>
+  <p>
+    Xóa dữ liệu trang web của website này trong phần cài đặt trình duyệt. Khi trang Tiến độ mở, sẽ
+    có thêm nút xóa toàn bộ tiến độ ngay trên website.
+  </p>
+
+  <h2>Nhà cung cấp hosting</h2>
+  <p>
+    Website được phục vụ qua Vercel. Như mọi máy chủ web, Vercel có thể ghi nhật ký kỹ thuật (ví dụ
+    địa chỉ IP, thời điểm truy cập) để vận hành và chống tấn công. Chúng tôi không dùng nhật ký này
+    để nhận diện người dùng.
+  </p>
+
+  <h2>Học sinh nhỏ tuổi</h2>
+  <p>
+    Vì không thu thập dữ liệu cá nhân, học sinh mọi lứa tuổi đều dùng được mà không cần cung cấp
+    thông tin. Phụ huynh và thầy cô có thể kiểm tra mục này bất cứ lúc nào.
+  </p>
+
+  <h2>Liên hệ</h2>
+  <p>
+    Câu hỏi về quyền riêng tư gửi tới
+    {emailReady ? (
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+    ) : (
+      <strong>{SITE.contactEmail}</strong>
+    )}
+    .
+  </p>
+</PageShell>

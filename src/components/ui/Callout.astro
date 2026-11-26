@@ -1,0 +1,46 @@
+---
+/**
+ * Hộp chú thích trong bài: Mẹo, Bẫy, Lưu ý, Ví dụ. Viền bao đủ 4 cạnh (không viền một cạnh).
+ * Mỗi loại có icon và tiêu đề chữ, không chỉ phân biệt bằng màu.
+ */
+import {
+  LightbulbIcon,
+  PencilSimpleLineIcon,
+  WarningIcon,
+  WarningOctagonIcon,
+} from '@phosphor-icons/react/ssr';
+import { cx, TONE_BORDER, TONE_SOFT, type Tone } from './recipes';
+
+type Kind = 'meo' | 'bay' | 'luu-y' | 'vi-du';
+
+interface Props {
+  kind: Kind;
+  title?: string;
+  class?: string;
+}
+
+const { kind, title, class: className } = Astro.props;
+const CONFIG: Record<Kind, { tone: Tone; label: string; icon: typeof LightbulbIcon }> = {
+  meo: { tone: 'info', label: 'Mẹo', icon: LightbulbIcon },
+  bay: { tone: 'error', label: 'Bẫy', icon: WarningOctagonIcon },
+  'luu-y': { tone: 'warning', label: 'Lưu ý', icon: WarningIcon },
+  'vi-du': { tone: 'neutral', label: 'Ví dụ', icon: PencilSimpleLineIcon },
+};
+const { tone, label, icon: Icon } = CONFIG[kind];
+const heading = title ? `${label}: ${title}` : label;
+---
+
+<aside
+  class={cx('flex gap-100 rounded-12 border p-200', TONE_SOFT[tone], TONE_BORDER[tone], className)}
+  aria-label={heading}
+>
+  <span class="inline-flex shrink-0 pt-25">
+    <Icon size={20} aria-hidden="true" />
+  </span>
+  <div class="flex min-w-0 flex-col gap-50">
+    <p class="body-4">{heading}</p>
+    <div class="body-6 flex flex-col gap-75">
+      <slot />
+    </div>
+  </div>
+</aside>

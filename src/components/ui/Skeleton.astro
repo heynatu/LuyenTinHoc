@@ -1,0 +1,30 @@
+---
+/**
+ * Khối giữ chỗ khi đang tải, đặt thành hình giống bố cục thật (không dùng spinner tròn).
+ * Trình đọc màn hình chỉ nghe nhãn của vùng chứa (aria-busy), khối này ẩn khỏi cây truy cập.
+ */
+interface Props {
+  shape?: 'line' | 'block' | 'circle' | 'pill';
+  width?: 'full' | '3/4' | '1/2' | '1/3' | '1/4';
+  class?: string;
+}
+
+const { shape = 'line', width = 'full', class: className } = Astro.props;
+const widths = { full: 'w-full', '3/4': 'w-3/4', '1/2': 'w-1/2', '1/3': 'w-1/3', '1/4': 'w-1/4' };
+const shapes = {
+  line: 'h-200 rounded-4',
+  block: 'h-900 rounded-12',
+  circle: 'size-600 rounded-full',
+  pill: 'h-300 rounded-full',
+};
+---
+
+<span
+  aria-hidden="true"
+  class:list={[
+    'block animate-skeleton bg-surface-secondary-hover',
+    shapes[shape],
+    shape !== 'circle' && widths[width],
+    className,
+  ]}
+></span>

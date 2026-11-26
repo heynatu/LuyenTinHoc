@@ -1,0 +1,37 @@
+---
+/**
+ * Thẻ nội dung. href: cả thẻ là link (hover đổi nền, nhấn lún 1px).
+ * selected: viền action và nhãn "Đang chọn" (không chỉ bằng màu).
+ * Bo 16, padding 24: khoảng cách ≥ 16 nên phần tử con không cần tính bo lồng nhau.
+ */
+import { CheckCircleIcon } from '@phosphor-icons/react/ssr';
+import { cardClasses, cx, type CardState } from './recipes';
+
+interface Props {
+  href?: string;
+  selected?: boolean;
+  state?: CardState;
+  as?: 'div' | 'article' | 'li';
+  class?: string;
+}
+
+const { href, selected = false, state, as: Tag = 'div', class: className } = Astro.props;
+const look: CardState = state ?? (selected ? 'selected' : href ? 'interactive' : 'default');
+const classes = cx(cardClasses(look), className);
+---
+
+{href ? (
+  <a href={href} class={classes}>
+    <slot />
+  </a>
+) : (
+  <Tag class={classes} aria-current={look === 'selected' ? 'true' : undefined}>
+    {look === 'selected' && (
+      <span class="caption-3 inline-flex items-center gap-50 self-start text-text-info">
+        <CheckCircleIcon size={16} aria-hidden="true" />
+        Đang chọn
+      </span>
+    )}
+    <slot />
+  </Tag>
+)}

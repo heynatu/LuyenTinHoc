@@ -1,0 +1,19 @@
+---
+/** Một mục của trang /thiet-ke: tiêu đề, mô tả, nội dung trưng bày. */
+interface Props {
+  id: string;
+  title: string;
+  description?: string;
+}
+const { id, title, description } = Astro.props;
+---
+
+<section id={id} aria-labelledby={`${id}-heading`} class="flex scroll-mt-900 flex-col gap-300">
+  <div class="flex max-w-hero flex-col gap-75">
+    <h2 id={`${id}-heading`} class="heading-5 text-text-primary">
+      {title}
+    </h2>
+    {description && <p class="body-6 text-text-secondary">{description}</p>}
+  </div>
+  <slot />
+</section>
