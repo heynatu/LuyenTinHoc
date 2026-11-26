@@ -1,4 +1,4 @@
-# CLAUDE.md: quy tắc dự án Tư Duy Tin
+# CLAUDE.md: quy tắc dự án LuyenTinHoc
 
 Đầu mỗi phiên: đọc file này, rồi `docs/PROGRESS.md` (đang ở giai đoạn nào, còn gì chưa làm), rồi phần liên quan trong `docs/SUPER_PROMPT.md` (đặc tả đầy đủ). Cuối mỗi giai đoạn: cập nhật `docs/PROGRESS.md` và báo cáo theo mẫu ở mục 7.2 của SUPER_PROMPT.
 

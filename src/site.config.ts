@@ -3,7 +3,7 @@
  * Giá trị dạng {{...}} là chỗ trống chưa điền: hiển thị nguyên dạng cho tới khi người sở hữu điền.
  */
 export const SITE = {
-  name: 'Tư Duy Tin',
+  name: 'LuyenTinHoc',
   slug: 'luyentinhoc',
   url: 'https://luyentinhoc.vercel.app',
   description:

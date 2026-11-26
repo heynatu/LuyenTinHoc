@@ -327,7 +327,7 @@ const meta = JSON.stringify({
       const blob = new Blob([exportProgress()], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `tien-do-tu-duy-tin-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `tien-do-luyentinhoc-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
       message.textContent = 'Đã tạo file tiến độ. Kiểm tra thư mục tải về của trình duyệt.';

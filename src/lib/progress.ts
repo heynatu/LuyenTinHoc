@@ -215,15 +215,15 @@ export function exportProgress(): string {
 /** Nhập tiến độ từ chuỗi JSON. Trả về thông báo lỗi tiếng Việt, hoặc null nếu thành công. */
 export function importProgress(text: string): string | null {
   if (text.length > IMPORT_LIMIT)
-    return 'File quá lớn (giới hạn 1 MB). Hãy chọn đúng file tiến độ đã xuất từ Tư Duy Tin.';
+    return 'File quá lớn (giới hạn 1 MB). Hãy chọn đúng file tiến độ đã xuất từ LuyenTinHoc.';
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
-    return 'File không phải JSON hợp lệ. Hãy chọn đúng file tiến độ đã xuất từ Tư Duy Tin.';
+    return 'File không phải JSON hợp lệ. Hãy chọn đúng file tiến độ đã xuất từ LuyenTinHoc.';
   }
   const clean = sanitize(raw);
-  if (!clean) return 'File không đúng định dạng tiến độ của Tư Duy Tin (thiếu trường v: 1).';
+  if (!clean) return 'File không đúng định dạng tiến độ của LuyenTinHoc (thiếu trường v: 1).';
   save(clean);
   return null;
 }

@@ -103,6 +103,10 @@
 - Đã điền: người biên soạn, email, giấy phép nội dung (CC BY-NC-SA 4.0).
 - Tên miền (mặc định `luyentinhoc.vercel.app`, repo và project Vercel tên `LuyenTinHoc`) nếu Vercel cấp địa chỉ khác
 
+## Đổi tên
+
+- Tên hiển thị, repo và project Vercel: LuyenTinHoc (trước đây Tư Duy Tin). Ảnh chia sẻ `public/og-default.png` đã vẽ lại với tên mới. Khóa localStorage giữ tiền tố `tdt:v1:` để không mất tiến độ.
+
 ## Chưa kiểm chứng
 
 - Header bảo mật trên Vercel thật (chỉ kiểm chứng được sau khi deploy: `curl -I`). Đã kiểm bằng `scripts/serve-dist.mjs` dùng đúng `vercel.json`.

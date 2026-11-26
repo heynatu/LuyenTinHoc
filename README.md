@@ -1,4 +1,4 @@
-# Tư Duy Tin
+# LuyenTinHoc
 
 Website miễn phí giúp học sinh Tiểu học, THCS, THPT học tin học theo chương trình GDPT 2018, xem thuật toán chạy từng bước, chạy Python và SQL ngay trên trình duyệt, và luyện đề thi học sinh giỏi, Tin học trẻ với lời giải Python đã kiểm chứng.
 
@@ -90,7 +90,7 @@ Nếu repo trên GitHub đã có file từ lần tải lên trước (bị thi�
 
 3. Mở tab Actions trên GitHub: workflow `ci` phải xanh.
 
-Nếu repo mới tạo bằng `git init` ở máy khác: chạy `git add -A` rồi `git commit -m "Khởi tạo Tư Duy Tin"` trước khi đẩy. File `.gitignore` đã loại `node_modules`, `dist` và các thư mục tạm.
+Nếu repo mới tạo bằng `git init` ở máy khác: chạy `git add -A` rồi `git commit -m "Khởi tạo LuyenTinHoc"` trước khi đẩy. File `.gitignore` đã loại `node_modules`, `dist` và các thư mục tạm.
 
 ## Triển khai Vercel
 
